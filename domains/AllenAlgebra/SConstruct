@@ -1,0 +1,46 @@
+import os, glob, sys
+
+pkgpath = os.environ.get( "PKG_CONFIG_PATH", "" )
+os.environ["PKG_CONFIG_PATH"] = pkgpath
+
+paths = [
+	"problems/",
+	"../../../universal-pddl-parser/",
+]
+
+mains = [
+	"problems/generator.cpp",
+	"../../../universal-pddl-parser/parser/Domain.cpp",
+]
+
+sources = []
+for path in paths :
+	sources += [
+		item
+		for item in glob.glob( path + "*.cpp" )
+		if item not in mains
+	]
+
+env = Environment( tools=["default"] )
+
+def print_cmd_line( commandline, target, source, env ) :
+	sys.stdout.write( "\033[33m%s\033[0m\n"%commandline )
+	sys.stdout.flush()
+env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
+
+env.AppendUnique(
+	CPPPATH=paths,
+	CXXFLAGS=[
+		"-Wall",
+		"-pedantic",
+		"-std=c++11",
+		"-g",
+		"-Wno-long-long",
+	]
+)
+
+env.Append(LIBS=[File(os.path.abspath('../../../universal-pddl-parser/lib/libparser.a'))])
+
+generator = env.Program( "problems/generator", sources + ["problems/generator.cpp"] )
+
+env.AlwaysBuild( generator )

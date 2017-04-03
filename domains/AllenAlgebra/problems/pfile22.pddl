@@ -1,0 +1,33 @@
+(define (problem aa-meets-6)
+ (:domain allen-algebra)
+ (:objects
+	i1 i2 i3 i4 i5 i6 - interval
+ )
+ (:init
+	(not-started i1)
+	(not-ended i1)
+	(not-started i2)
+	(not-ended i2)
+	(not-started i3)
+	(not-ended i3)
+	(not-started i4)
+	(not-ended i4)
+	(not-started i5)
+	(not-ended i5)
+	(not-started i6)
+	(not-ended i6)
+	(= (length i1) 5)
+	(= (length i2) 5)
+	(= (length i3) 5)
+	(= (length i4) 5)
+	(= (length i5) 5)
+	(= (length i6) 5)
+ )
+ (:goal
+	(and
+		(meets i1 i2)
+		(meets i3 i4)
+		(meets i5 i6)
+	)
+ )
+)
