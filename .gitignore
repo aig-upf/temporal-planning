@@ -27,3 +27,17 @@
 *.exe
 *.out
 *.app
+
+#
+bin/compileSHE
+bin/compileSHECosts
+bin/compileTempo
+bin/compileTempoParallel
+bin/planSchedule
+
+domains/AllenAlgebra/problems/generator
+
+*.sconsign.dblite
+ins.txt
+*.pyc
+fd_copy/builds
