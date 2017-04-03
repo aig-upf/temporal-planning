@@ -29,7 +29,7 @@ base['pddl_parser_path'] = os.path.abspath(os.environ.get('PDDL_PARSER_PATH', '.
 include_paths = ['.', base['pddl_parser_path']]
 
 if platform.system() == "Darwin":
-	base.Append(LINKFLAGS=['-undefined', 'dynamic_lookup')
+	base.Append(LINKFLAGS=['-undefined', 'dynamic_lookup'])
 
 base.AppendUnique(
 	CPPPATH = [ os.path.abspath(p) for p in include_paths ],
