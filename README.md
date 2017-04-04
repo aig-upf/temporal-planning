@@ -7,7 +7,10 @@ This documentation aims to explain how the experiments with the planners introdu
 	1. [Planner Compilation](#planner-compilation)
 		1. [Fast Downward Compilation](#fd-compilation)
 		1. [TP-SHE and TEMPO Compilation](#tpshe-tempo-compilation)
+		1. [Domain Generator Compilation](#domain-generator-compilation)
 1. [Usage](#usage)
+	1. [Automatic Usage](#automatic-usage)
+	1. [Manual Usage](#manual-usage)
 1. [Credits](#credits)
 1. [References](#references)
 
@@ -58,7 +61,44 @@ scons
 
 After running these commands, executable files will be created in the `temporal-planning/bin` directory.
 
+### <a name="domain-generator-compilation"></a>Domain Generator Compilation
+
+The Allen Algebra domain requires a generator to create the problems that will be used as the planner's input. You can compile this generator by running the following commands:
+
+```
+cd temporal-planning/domains/AllenAlgebra
+scons
+```
+
+After executing such commands, a file called `generator` will be created inside `AllenAlgebra/problems`.
+
 ## <a name="usage"></a>Usage
+
+### <a name="automatic-usage"></a>Automatic Usage
+
+A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE` or `TP`) and a temporal planning problem. You can run it as follows:
+
+```
+python plan.py <planner> <domain-path> <problem-path> <generator-path>
+```
+
+where:
+
+* `<planner>`: Name of the algorithm you want to use.
+
+	* If you want to use `TPSHE`, you must write `she`.
+
+	* If you want to use `TP`, you must write `tempo-i` where `i` is the bound you want to use. For example, for bound 2 you should use `tempo-2`, while for bound 3 you should use `tempo-3`.
+
+* `<domain-path>`: Path to the input domain.
+
+* `<problem-path>`: Path to the input problem.
+
+* `<generator-path>`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain.
+
+
+
+### <a name="manual-usage"></a>Manual Usage
 
 ## <a name="credits"></a>Credits
 
