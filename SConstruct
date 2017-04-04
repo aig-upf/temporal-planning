@@ -46,12 +46,10 @@ sources = glob.glob( src_path + "/*.cpp" )
 build_files = [build_dirname + '/' + src for src in sources]
 
 compileSHE = base.Program( "bin/compileSHE", ["bin/compileSHE.cpp"] )
-compileSHECosts = base.Program( "bin/compileSHECosts", ["bin/compileSHECosts.cpp"] )
 compileTempo = base.Program( "bin/compileTempo", ["bin/compileTempo.cpp"] )
 planSchedule = base.Program( "bin/planSchedule", ["bin/planSchedule.cpp"] )
 
 base.AlwaysBuild( compileSHE )
-base.AlwaysBuild( compileSHECosts )
 base.AlwaysBuild( compileTempo )
 base.AlwaysBuild( planSchedule )
 
