@@ -4,10 +4,14 @@ import os
 import sys
 from shutil import copyfile
 
+def print_help():
+	print "Usage: python plan.py <planner> <domain-route> <problem-route> <generator-route>"
+	print ":: Example 1: python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl domains/AllenAlgebra/problems/generator"
+	print ":: Example 2: python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p1.pddl" 
+
 if __name__ == "__main__":
 	if len(sys.argv) < 4:
-		print "Usage: python plan.py <planner> <domain-route> <problem-route> <generator-route>"
-		print "The <generator-route> is optional (domain dependant)"
+		print_help()
 		exit(1)
 	
 	baseFolder = os.path.dirname(os.path.realpath(sys.argv[0] + "/.."))
