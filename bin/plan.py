@@ -41,8 +41,6 @@ if __name__ == "__main__":
 	
 	if inputPlanner == "she":
 		compileCmd = "%s/bin/compileSHE %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, genClassicDomain, genClassicProblem)
-	elif inputPlanner == "she-costs":
-		compileCmd = "%s/bin/compileSHECosts %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo-"):
 		_, bound = inputPlanner.split("-")
 		compileCmd = "%s/bin/compileTempo %s %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, bound, genClassicDomain, genClassicProblem)
@@ -57,7 +55,7 @@ if __name__ == "__main__":
 	## run fast downward
 	planCmd = None
 	
-	if inputPlanner == "she" or inputPlanner == "she-costs":
+	if inputPlanner == "she":
 		planCmd = "python %s/fd_copy/fast-downward.py --build release64 --alias seq-sat-lama-2011 %s %s" % (baseFolder, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
 		planCmd = "python %s/fd_copy/fast-downward.py --build release64 --alias tp-lama %s %s" % (baseFolder, genClassicDomain, genClassicProblem)
@@ -65,8 +63,8 @@ if __name__ == "__main__":
 	print "Planning: %s" % (planCmd)
 	os.system(planCmd)
 
-	## convert classical solutions into temporal solutions for she and she-costs
-	if inputPlanner == "she" or inputPlanner == "she-costs":
+	## convert classical solutions into temporal solutions for she
+	if inputPlanner == "she":
 		solFiles = [i for i in os.listdir(".") if i.startswith("sas_plan.")]
 		solFiles.sort(reverse=True)
 		if len(solFiles) == 0:
