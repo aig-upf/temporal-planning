@@ -96,7 +96,19 @@ where:
 
 * `<generator-path>`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain.
 
+#### Example 1
 
+```
+cd temporal-planning
+python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl domains/AllenAlgebra/problems/generator
+```
+
+#### Example 2
+
+```
+cd temporal-planning
+python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p1.pddl
+```
 
 ### <a name="manual-usage"></a>Manual Usage
 
