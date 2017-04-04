@@ -5,6 +5,8 @@ This documentation aims to explain how the experiments with the planners introdu
 1. [Installation](#installation)
 	1. [Universal PDDL Parser](#universal-pddl-parser)
 	1. [Planner Compilation](#planner-compilation)
+		1. [Fast Downward Compilation](#fd-compilation)
+		1. [TP-SHE and TEMPO Compilation](#tpshe-tempo-compilation)
 1. [Usage](#usage)
 1. [Credits](#credits)
 1. [References](#references)
@@ -34,16 +36,33 @@ Firstly, you have to either clone or download this repository. It is important t
 git clone https://github.com/aig-upf/temporal-planning.git
 ```
 
-#### Fast Downward Compilation
+#### <a name="fd-compilation"></a>Fast Downward Compilation
 
-#### Compilation
+The Fast Downward version in this repository contains modifications to support temporal planning. However, the steps for compiling it are the same (see section "Compiling the planner" [here](http://www.fast-downward.org/ObtainingAndRunningFastDownward).
 
+For example, in case you wanted to compile the 64-bit version you should run the following commands:
+
+```
+cd temporal-planning
+python fd_copy/build.py release64
+```
+
+#### <a name="tpshe-tempo-compilation"></a>TPSHE and TP Compilation
+
+The planners `TPSHE` and `TP` can be compiled by running the `scons` command in the root directory:
+
+```
+cd temporal-planning
+scons
+```
+
+After running these commands, executable files will be created in the `temporal-planning/bin` directory.
 
 ## <a name="usage"></a>Usage
 
 ## <a name="credits"></a>Credits
 
-The planner is a modified version of the [Fast Downward](http://www.fast-downward.org) distribution.
+The planner is a modified version of the [Fast Downward](http://www.fast-downward.org) distribution to support temporal planning.
 
 ## <a name="references"></a>References
 
