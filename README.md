@@ -7,10 +7,13 @@ This documentation aims to explain how the experiments with the planners introdu
 	1. [Planner Compilation](#planner-compilation)
 		1. [Fast Downward Compilation](#fd-compilation)
 		1. [TPSHE and TP Compilation](#tpshe-tempo-compilation)
-		1. [Domain Generator Compilation](#domain-generator-compilation)
+	1. [Domain Generator Compilation](#domain-generator-compilation)
 1. [Usage](#usage)
 	1. [Automatic Usage](#automatic-usage)
 	1. [Manual Usage](#manual-usage)
+		1. [Generator of Domains and Problems](#use-generator-dom-prob)
+		1. [Running TPSHE](#use-tpshe)
+		1. [Running TP](#use-tp)
 1. [Credits](#credits)
 1. [References](#references)
 
@@ -114,7 +117,7 @@ python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domain
 
 ### <a name="manual-usage"></a>Manual Usage
 
-#### Generator of Domains and Problems
+#### <a name="use-generator-dom-prob"></a>Generator of Domains and Problems
 
 As explained before, a generator is used for the AllenAlgebra domain so as to obtain the temporal domains and problems. The generator is found in the `domains/AllenAlgebra/problems` folder.
 
@@ -130,7 +133,7 @@ Assuming that we are in the folder `temporal-planning` (the root), an example wo
 ./domains/AllenAlgebra/problems/generator domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl > tdom.pddl 2> tins.pddl
 ```
 
-#### Running TPSHE
+#### <a name="use-tpshe"></a>Running TPSHE
 
 To use `TPSHE`, you have to run the binary `compileSHE` placed in the `bin` folder. The command follows this structure:
 
@@ -138,26 +141,45 @@ To use `TPSHE`, you have to run the binary `compileSHE` placed in the `bin` fold
 ./compileSHE <domain> <problem> > <output-domain> 2> <output-problem>
 ```
 
-The following is an example of how it is used for the Driverlog domain given that we are in the `temporal-planning` (the root) folder:
+The following command is an example of how it is used for the Driverlog domain given that we are in the `temporal-planning` (the root) folder:
 
 ```
 ./bin/compileSHE domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl > dom.pddl 2> ins.pddl
 ```
 
-Once we have the domain and the problem have been converted, we can use Fast Downward using the LAMA-2011 setting. The command is the following (use the build you used to compile Fast Downward):
+Once the domain and the problem have been converted, we can use Fast Downward using the LAMA-2011 setting. The command is the following (use the build you used to compile Fast Downward):
 
 ```
 python fd_copy/fast-downward.py --build release64 --alias seq-sat-lama-2011 dom.pddl ins.pddl
 ```
 
-Since LAMA-2011 is used for `TPSHE`, a classical plan will be obtained (not a temporal plan). To convert the classical plan into a temporal plan, you can use the `planSchedule` tool of the `bin` folder as follows:
+Since LAMA-2011 is used for `TPSHE`, a classical plan will be obtained instead of a temporal plan. The name of such plans begins with `sas_plan`. To convert a classical plan into a temporal plan, you can use the `planSchedule` tool of the `bin` folder as follows:
 
 ```
 ./planSchedule <temporal-domain> <classical-domain> <temporal-problem> <classical-plan> > <temporal-plan>
 ```
 
-#### Running TP
+#### <a name="use-tp"></a>Running TP
 
+To use `TP`, you have to run the binary `compileTempo` placed in the `bin` folder. The command follows this structure:
+
+```
+./compileTempo <domain> <problem> <bound> > <output-domain> 2> <output-problem>
+```
+
+The following command is an example of how it is used for the Driverlog domain using bound 2 given that we are in the `temporal-planning` (the root) folder:
+
+```
+./bin/compileTempo domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl 2 > dom.pddl 2> ins.pddl
+```
+
+Once the domain and the problem have been converted, we can use Fast Downward using the TP-LAMA setting. The command is the following (use the build you used to compile Fast Downward):
+
+```
+python fd_copy/fast-downward.py --build release64 --alias tp-lama dom.pddl ins.pddl
+```
+
+The output of Fast Downward will consist of temporal plans (the name of the files starts with `tmp_sas_plan.`) unlike with `TPSHE`.
 
 ## <a name="credits"></a>Credits
 
