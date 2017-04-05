@@ -4,6 +4,16 @@ import os
 import sys
 from shutil import copyfile
 
+def get_fast_downward_build_name(baseFolder):
+	downwardBuilds = baseFolder + "/fd_copy/builds/"
+	fdBuilds = ["release32", "release64", "debug32", "debug64", "minimal"]
+	
+	for build in fdBuilds:
+		if os.path.isfile(downwardBuilds + build + "/bin/downward"):
+			return build
+	
+	return None
+
 def print_help():
 	print "Usage: python plan.py <planner> <domain-path> <problem-path> <generator-path>"
 	print ":: Example 1: python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl domains/AllenAlgebra/problems/generator"
@@ -15,6 +25,11 @@ if __name__ == "__main__":
 		exit(1)
 	
 	baseFolder = os.path.dirname(os.path.realpath(sys.argv[0] + "/.."))
+	fdBuild = get_fast_downward_build_name(baseFolder)
+	
+	if fdBuild is None:
+		print "Error: No Fast Downward compilation found. Compile Fast Downward before running this script"
+		exit(-1)
 	
 	inputPlanner = sys.argv[1]
 	inputDomain = sys.argv[2]
@@ -56,9 +71,9 @@ if __name__ == "__main__":
 	planCmd = None
 	
 	if inputPlanner == "she":
-		planCmd = "python %s/fd_copy/fast-downward.py --build release64 --alias seq-sat-lama-2011 %s %s" % (baseFolder, genClassicDomain, genClassicProblem)
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias seq-sat-lama-2011 %s %s" % (baseFolder, fdBuild, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
-		planCmd = "python %s/fd_copy/fast-downward.py --build release64 --alias tp-lama %s %s" % (baseFolder, genClassicDomain, genClassicProblem)
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama %s %s" % (baseFolder, fdBuild, genClassicDomain, genClassicProblem)
 	
 	print "Planning: %s" % (planCmd)
 	os.system(planCmd)
