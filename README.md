@@ -130,6 +130,35 @@ Assuming that we are in the folder `temporal-planning` (the root), an example wo
 ./domains/AllenAlgebra/problems/generator domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl > tdom.pddl 2> tins.pddl
 ```
 
+#### Running TPSHE
+
+To use `TPSHE`, you have to run the binary `compileSHE` placed in the `bin` folder. The command follows this structure:
+
+```
+./compileSHE <domain> <problem> > <output-domain> 2> <output-problem>
+```
+
+The following is an example of how it is used for the Driverlog domain given that we are in the `temporal-planning` (the root) folder:
+
+```
+./bin/compileSHE domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl > dom.pddl 2> ins.pddl
+```
+
+Once we have the domain and the problem have been converted, we can use Fast Downward using the LAMA-2011 setting. The command is the following (use the build you used to compile Fast Downward):
+
+```
+python fd_copy/fast-downward.py --build release64 --alias seq-sat-lama-2011 dom.pddl ins.pddl
+```
+
+Since LAMA-2011 is used for `TPSHE`, a classical plan will be obtained (not a temporal plan). To convert the classical plan into a temporal plan, you can use the `planSchedule` tool of the `bin` folder as follows:
+
+```
+./planSchedule <temporal-domain> <classical-domain> <temporal-problem> <classical-plan> > <temporal-plan>
+```
+
+#### Running TP
+
+
 ## <a name="credits"></a>Credits
 
 The planner is a modified version of the [Fast Downward](http://www.fast-downward.org) distribution to support temporal planning.
