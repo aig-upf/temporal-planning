@@ -6,7 +6,7 @@ This documentation aims to explain how the experiments with the planners introdu
 	1. [Universal PDDL Parser](#universal-pddl-parser)
 	1. [Planner Compilation](#planner-compilation)
 		1. [Fast Downward Compilation](#fd-compilation)
-		1. [TP-SHE and TEMPO Compilation](#tpshe-tempo-compilation)
+		1. [TPSHE and TP Compilation](#tpshe-tempo-compilation)
 		1. [Domain Generator Compilation](#domain-generator-compilation)
 1. [Usage](#usage)
 	1. [Automatic Usage](#automatic-usage)
@@ -96,6 +96,8 @@ where:
 
 * `<generator-path>`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain.
 
+The temporal solutions obtained by Fast Downward will be written to files whose name will begin with `tmp_sas_plan.` followed by a number indicating the solution number to the problem (e.g. `tmp_sas_plan.2` would be the second solution that solves the problem).
+
 #### Example 1
 
 ```
@@ -111,6 +113,22 @@ python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domain
 ```
 
 ### <a name="manual-usage"></a>Manual Usage
+
+#### Generator of Domains and Problems
+
+As explained before, a generator is used for the AllenAlgebra domain so as to obtain the temporal domains and problems. The generator is found in the `domains/AllenAlgebra/problems` folder.
+
+The command for obtaining temporal domains and problems is the following:
+
+```
+./generator <input-domain>  <input-problem> > <output-domain> 2> <output-problem>
+```
+
+Assuming that we are in the folder `temporal-planning` (the root), an example would be:
+
+```
+./domains/AllenAlgebra/problems/generator domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl > tdom.pddl 2> tins.pddl
+```
 
 ## <a name="credits"></a>Credits
 
