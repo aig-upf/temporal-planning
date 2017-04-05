@@ -82,7 +82,7 @@ After executing such commands, a file called `generator` will be created inside 
 A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE` or `TP`) and a temporal planning problem. You can run it as follows:
 
 ```
-python plan.py <planner> <domain-path> <problem-path> <generator-path>
+python plan.py <planner> <domain-path> <problem-path> <time-limit> <generator-path>
 ```
 
 where:
@@ -97,7 +97,9 @@ where:
 
 * `<problem-path>`: Path to the input problem.
 
-* `<generator-path>`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain.
+* `<time-limit>`: Maximum number of seconds during which Fast Downward will try to find a solution.
+
+* `<generator-path>`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain, so it is _optional_.
 
 The temporal solutions obtained by Fast Downward will be written to files whose name will begin with `tmp_sas_plan.` followed by a number indicating the solution number to the problem (e.g. `tmp_sas_plan.2` would be the second solution that solves the problem).
 
