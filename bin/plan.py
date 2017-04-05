@@ -15,12 +15,12 @@ def get_fast_downward_build_name(baseFolder):
 	return None
 
 def print_help():
-	print "Usage: python plan.py <planner> <domain-path> <problem-path> <generator-path>"
-	print ":: Example 1: python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl domains/AllenAlgebra/problems/generator"
-	print ":: Example 2: python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p1.pddl" 
+	print "Usage: python plan.py <planner> <domain-path> <problem-path> <time-limit> <generator-path>"
+	print ":: Example 1: python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl 3600 domains/AllenAlgebra/problems/generator"
+	print ":: Example 2: python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p1.pddl 3600" 
 
 if __name__ == "__main__":
-	if len(sys.argv) < 4:
+	if len(sys.argv) < 5:
 		print_help()
 		exit(1)
 	
@@ -34,6 +34,7 @@ if __name__ == "__main__":
 	inputPlanner = sys.argv[1]
 	inputDomain = sys.argv[2]
 	inputProblem = sys.argv[3]
+	timeLimit = sys.argv[4]
 	
 	genTempoDomain = "tdom.pddl"
 	genTempoProblem = "tins.pddl"
@@ -42,8 +43,8 @@ if __name__ == "__main__":
 	genClassicProblem = "ins.pddl"
 	
 	## generate temporal domains or copy them to working directory
-	if len(sys.argv) >= 5:
-		inputGenerator = sys.argv[4]
+	if len(sys.argv) >= 6:
+		inputGenerator = sys.argv[5]
 		generatorCmd = "./%s %s %s > %s 2> %s" % (inputGenerator, inputDomain, inputProblem, genTempoDomain, genTempoProblem)
 		print "Executing generator: %s" % (generatorCmd)
 		os.system(generatorCmd)
@@ -71,9 +72,9 @@ if __name__ == "__main__":
 	planCmd = None
 	
 	if inputPlanner == "she":
-		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias seq-sat-lama-2011 %s %s" % (baseFolder, fdBuild, genClassicDomain, genClassicProblem)
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias seq-sat-lama-2011 --overall-time-limit %ss %s %s" % (baseFolder, fdBuild, timeLimit, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
-		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama %s %s" % (baseFolder, fdBuild, genClassicDomain, genClassicProblem)
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss %s %s" % (baseFolder, fdBuild, timeLimit, genClassicDomain, genClassicProblem)
 	
 	print "Planning: %s" % (planCmd)
 	os.system(planCmd)
