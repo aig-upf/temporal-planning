@@ -126,7 +126,7 @@ void TPLazySearch::get_successor_operators(vector<const GlobalOperator *> &ops) 
 void TPLazySearch::generate_successors() {
 	//int myint = 0;
 	//bool mycheck = true;
-	std::string mystr[] = { "", "" };
+	//std::string mystr[] = { "", "" };
 
 	if ( TP_DEBUG ) {
 		std::cout << "Generating!\nPath:";
