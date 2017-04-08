@@ -8,6 +8,7 @@ This documentation aims to explain how the experiments with the planners introdu
 		1. [Fast Downward Compilation](#fd-compilation)
 		1. [TPSHE and TP Compilation](#tpshe-tempo-compilation)
 	1. [Domain Generator Compilation](#domain-generator-compilation)
+	1. [Plan Validator (VAL)](#plan-validator-compilation)
 1. [Usage](#usage)
 	1. [Automatic Usage](#automatic-usage)
 	1. [Manual Usage](#manual-usage)
@@ -75,6 +76,12 @@ scons
 
 After executing such commands, a file called `generator` will be created inside `AllenAlgebra/problems`.
 
+### <a name="plan-validator-compilation"></a>Plan Validator (VAL)
+
+The `VAL` tool by [[Howey, Long and Fox, 2004]](#ref-val) can be used to validate the resulting temporal plans. You can get the code from their [repository](https://github.com/KCL-Planning/VAL). To run the script in the next section, the `VAL` folder must be in the same folder than the Universal PDDL Parser and the Temporal Planning Folders.
+
+To compile the tool, use the `make` command.
+
 ## <a name="usage"></a>Usage
 
 ### <a name="automatic-usage"></a>Automatic Usage
@@ -102,6 +109,8 @@ where:
 * `--time`: Maximum number of seconds during which Fast Downward will try to find a solution. Default: 3600 seconds.
 
 * `--memory`: Maximum number of MiB that Fast Downward will use to find a solution. Default: 4096 MiB.
+
+* `-h`: Shows information about how to use the program.
 
 The temporal solutions obtained by Fast Downward will be written to files whose name will begin with `tmp_sas_plan.` followed by a number indicating the solution number to the problem (e.g. `tmp_sas_plan.2` would be the second solution that solves the problem).
 
@@ -194,3 +203,6 @@ The planner is a modified version of the [Fast Downward](http://www.fast-downwar
 ## <a name="references"></a>References
 
 * <a name="ref-tmp-planning-icaps15">Jiménez, S., Jonsson, A., and Palacios, H. (2015).</a> [_Temporal Planning With Required Concurrency Using Classical Planning_](http://www.dtic.upf.edu/~jonsson/icaps15.pdf). Proceedings of the 25th International Conference on Automated Planning and Scheduling.
+
+* <a name="ref-val">Howey, R., Long, D., and Fox, M. (2004).</a> [_VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL_](http://ieeexplore.ieee.org/document/1374201/). In Tools with Artificial Intelligence, 2004. ICTAI 2004. 16th IEEE International Conference on (pp. 294-301). IEEE.
+
