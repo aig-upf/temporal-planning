@@ -11,7 +11,7 @@ def getArguments():
 	argParser.add_argument("domain", help="input PDDL domain")
 	argParser.add_argument("problem", help="input PDDL problem")
 	argParser.add_argument("--generator", "-g", default=None, help="generator")
-	argParser.add_argument("--time", "-t", default=3600, help="number of seconds during which the planner will run (default: 3600 seconds)")
+	argParser.add_argument("--time", "-t", default=3600, help="maximum number of seconds during which the planner will run (default: 3600 seconds)")
 	argParser.add_argument("--memory", "-m", default=4096, help="maximum amount of memory in MiB to be used by the planner (default: 4096 MiB)")
 	return argParser.parse_args()
 

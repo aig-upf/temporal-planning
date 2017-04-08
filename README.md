@@ -82,32 +82,36 @@ After executing such commands, a file called `generator` will be created inside 
 A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE` or `TP`) and a temporal planning problem. You can run it as follows:
 
 ```
-python plan.py <planner> <domain-path> <problem-path> <time-limit> <generator-path>
+plan.py [-h] [--generator GENERATOR] [--time TIME] [--memory MEMORY] planner domain problem
 ```
 
 where:
 
-* `<planner>`: Name of the algorithm you want to use.
+* `planner`: Name of the algorithm you want to use.
 
 	* If you want to use `TPSHE`, you must write `she`.
 
 	* If you want to use `TP`, you must write `tempo-i` where `i` is the bound you want to use. For example, for bound 2 you should use `tempo-2`, while for bound 3 you should use `tempo-3`.
 
-* `<domain-path>`: Path to the input domain.
+* `domain`: Path to the input domain.
 
-* `<problem-path>`: Path to the input problem.
+* `problem`: Path to the input problem.
 
-* `<time-limit>`: Maximum number of seconds during which Fast Downward will try to find a solution.
+* `--generator`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain.
 
-* `<generator-path>`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain, so it is _optional_.
+* `--time`: Maximum number of seconds during which Fast Downward will try to find a solution. Default: 3600 seconds.
+
+* `--memory`: Maximum number of MiB that Fast Downward will use to find a solution. Default: 4096 MiB.
 
 The temporal solutions obtained by Fast Downward will be written to files whose name will begin with `tmp_sas_plan.` followed by a number indicating the solution number to the problem (e.g. `tmp_sas_plan.2` would be the second solution that solves the problem).
+
+Besides, in case a plan is produced, it will be validated using the `VAL` tool previously introduced. The output of the validator will be written to a file called `plan.validation`.
 
 #### Example 1
 
 ```
 cd temporal-planning
-python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl domains/AllenAlgebra/problems/generator
+python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl --generator domains/AllenAlgebra/problems/generator
 ```
 
 #### Example 2
