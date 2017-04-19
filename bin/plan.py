@@ -36,15 +36,15 @@ def getLastPlanFileName():
 
 if __name__ == "__main__":
 	args = getArguments()
-	
+
 	baseFolder = os.path.dirname(os.path.realpath(sys.argv[0] + "/.."))
 	fdBuild = getFastDownwardBuildName(baseFolder)
 	validatorBinary = baseFolder + "/../VAL/validate"
-	
+
 	if fdBuild is None:
 		print "Error: No Fast Downward compilation found. Compile Fast Downward before running this script"
 		exit(-1)
-	
+
 	## read input
 	inputPlanner = args.planner
 	inputDomain = args.domain
@@ -52,20 +52,20 @@ if __name__ == "__main__":
 	timeLimit = args.time
 	memoryLimit = args.memory
 	inputGenerator = args.generator
-	
+
 	## check if planner is accepted
 	if not (inputPlanner == "she" or inputPlanner.startswith("tempo-")):
 		print "Error: The specified planner '%s' is not recognized" % inputPlanner
 		exit(-1)
-	
+
 	## name of input domain and problems to she, tempo
 	genTempoDomain = "tdom.pddl"
 	genTempoProblem = "tins.pddl"
-	
+
 	## name of files produced by she, tempo
 	genClassicDomain = "dom.pddl"
 	genClassicProblem = "ins.pddl"
-	
+
 	## generate temporal domains or copy them to working directory
 	if inputGenerator is not None:
 		generatorCmd = "./%s %s %s > %s 2> %s" % (inputGenerator, inputDomain, inputProblem, genTempoDomain, genTempoProblem)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 	## convert temporal domains and problems into classical domains and problems
 	compileCmd = None
-	
+
 	if inputPlanner == "she":
 		compileCmd = "%s/bin/compileSHE %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo-"):
@@ -86,15 +86,15 @@ if __name__ == "__main__":
 
 	print "Compiling problem: %s" % (compileCmd)
 	os.system(compileCmd)
-	
+
 	## run fast downward
 	planCmd = None
-	
+
 	if inputPlanner == "she":
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias seq-sat-lama-2011 --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
-	
+
 	print "Compiling temporal problem: %s" % (planCmd)
 	os.system(planCmd)
 
@@ -111,7 +111,8 @@ if __name__ == "__main__":
 			os.system(scheduleCmd)
 
 	## plan validation
-	os.remove("plan.validation")
+	if os.path.isfile("plan.validation"):
+		os.remove("plan.validation")
 	if existsValidator(validatorBinary):
 		lastPlan = getLastPlanFileName()
 		if lastPlan is None:
@@ -127,5 +128,3 @@ if __name__ == "__main__":
 			os.system(valCmd);
 	else:
 		print "Error: Could not find the validator (current path: %s)" % validatorBinary
-
-
