@@ -91,6 +91,10 @@ if __name__ == "__main__":
 	planCmd = None
 
 	if inputPlanner == "she":
+		## clean current temporal solutions (in case of she, they are not deleted by fast-downward)
+		planFiles = [i for i in os.listdir(".") if i.startswith("sas_plan.") or i.startswith("tmp_sas_plan.")]
+		for planFile in planFiles:
+			os.remove(planFile)
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias seq-sat-lama-2011 --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
