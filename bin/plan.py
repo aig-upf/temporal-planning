@@ -15,6 +15,7 @@ def getArguments():
 	argParser.add_argument("--memory", "-m", default=4096, help="maximum amount of memory in MiB to be used by the planner (default: 4096 MiB)")
 	argParser.add_argument("--iterated", dest="iterated", action="store_true", help="look for more solutions after finding the first one")
 	argParser.add_argument("--no-iterated", dest="iterated", action="store_false", help="stop after finding the first solution")
+	argParser.add_argument("--plan-file", "-p", dest="planfile", default="sas_plan", help="prefix of the resulting plan files")
 	argParser.set_defaults(iterated=True)
 	return argParser.parse_args()
 
@@ -30,7 +31,7 @@ def existsValidator(validatorBinary):
 	return os.path.isfile(validatorBinary)
 
 def getLastPlanFileName():
-	solFiles = [i for i in os.listdir(".") if i.startswith("tmp_sas_plan")]
+	solFiles = [i for i in os.listdir(".") if i.startswith("tmp_" + planFilePrefix)]
 	solFiles.sort(reverse=True)
 	if len(solFiles) == 0:
 		return None
@@ -56,6 +57,7 @@ if __name__ == "__main__":
 	memoryLimit = args.memory
 	inputGenerator = args.generator
 	iteratedSolution = args.iterated
+	planFilePrefix = args.planfile
 
 	## check if planner is accepted
 	if not (inputPlanner == "she" or inputPlanner.startswith("tempo-")):
@@ -96,7 +98,7 @@ if __name__ == "__main__":
 
 	if inputPlanner == "she":
 		## clean current temporal solutions (in case of she, they are not deleted by fast-downward)
-		planFiles = [i for i in os.listdir(".") if i.startswith("sas_plan") or i.startswith("tmp_sas_plan")]
+		planFiles = [i for i in os.listdir(".") if i.startswith(planFilePrefix) or i.startswith("tmp_" + planFilePrefix)]
 		for planFile in planFiles:
 			os.remove(planFile)
 		aliasName = None
@@ -104,16 +106,16 @@ if __name__ == "__main__":
 			aliasName = "seq-sat-lama-2011"
 		else:
 			aliasName = "seq-sat-lama-2011-ni"
-		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias %s --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, aliasName, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias %s --overall-time-limit %ss --overall-memory-limit %s --plan-file %s %s %s" % (baseFolder, fdBuild, aliasName, timeLimit, memoryLimit, planFilePrefix, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
-		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss --overall-memory-limit %s --plan-file %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, planFilePrefix, genClassicDomain, genClassicProblem)
 
 	print "Compiling temporal problem: %s" % (planCmd)
 	os.system(planCmd)
 
 	## convert classical solutions into temporal solutions for she
 	if inputPlanner == "she":
-		solFiles = [i for i in os.listdir(".") if i.startswith("sas_plan")]
+		solFiles = [i for i in os.listdir(".") if i.startswith(planFilePrefix)]
 		solFiles.sort(reverse=True)
 		if len(solFiles) == 0:
 			print "Error: No solution to be converted into temporal has been found"
@@ -121,9 +123,9 @@ if __name__ == "__main__":
 			scheduleCmd = None
 			if iteratedSolution:
 				_, numSol = solFiles[0].split(".")
-				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_sas_plan.%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], numSol)
+				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_%s.%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], planFilePrefix, numSol)
 			else:
-				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_sas_plan" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0])
+				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], planFilePrefix)
 			print "Creating temporal plan: %s" % (scheduleCmd)
 			os.system(scheduleCmd)
 
