@@ -122,6 +122,27 @@ ALIASES["seq-sat-lama-2011"] = [
                      lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=1)
                      ],repeat_last=true,continue_on_fail=true)""",
     "--always"]
+    
+# lama-2011 that finishes when the first solution is found (no iterations)
+ALIASES["seq-sat-lama-2011-ni"] = [
+    "--if-unit-cost",
+    "--heuristic",
+    "hlm,hff=lm_ff_syn(lm_rhw(reasonable_orders=true))",
+    "--search", "lazy_greedy([hff,hlm],preferred=[hff,hlm])",
+    "--if-non-unit-cost",
+    "--heuristic",
+    "hlm1,hff1=lm_ff_syn(lm_rhw(reasonable_orders=true,"
+    "                           lm_cost_type=one,cost_type=one))",
+    "--heuristic",
+    "hlm2,hff2=lm_ff_syn(lm_rhw(reasonable_orders=true,"
+    "                           lm_cost_type=plusone,cost_type=plusone))",
+    "--search", """iterated([
+                     lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],
+                                 cost_type=one,reopen_closed=false),
+                     lazy_greedy([hff2,hlm2],preferred=[hff2,hlm2],
+                                 reopen_closed=false)])""",
+    "--always"]
+
 # Append --always to be on the safe side if we want to append
 # additional options later.
 

@@ -13,6 +13,9 @@ def getArguments():
 	argParser.add_argument("--generator", "-g", default=None, help="generator")
 	argParser.add_argument("--time", "-t", default=3600, help="maximum number of seconds during which the planner will run (default: 3600 seconds)")
 	argParser.add_argument("--memory", "-m", default=4096, help="maximum amount of memory in MiB to be used by the planner (default: 4096 MiB)")
+	argParser.add_argument("--iterated", dest="iterated", action="store_true", help="look for more solutions after finding the first one")
+	argParser.add_argument("--no-iterated", dest="iterated", action="store_false", help="stop after finding the first solution")
+	argParser.set_defaults(iterated=True)
 	return argParser.parse_args()
 
 def getFastDownwardBuildName(baseFolder):
@@ -27,7 +30,7 @@ def existsValidator(validatorBinary):
 	return os.path.isfile(validatorBinary)
 
 def getLastPlanFileName():
-	solFiles = [i for i in os.listdir(".") if i.startswith("tmp_sas_plan.")]
+	solFiles = [i for i in os.listdir(".") if i.startswith("tmp_sas_plan")]
 	solFiles.sort(reverse=True)
 	if len(solFiles) == 0:
 		return None
@@ -52,6 +55,7 @@ if __name__ == "__main__":
 	timeLimit = args.time
 	memoryLimit = args.memory
 	inputGenerator = args.generator
+	iteratedSolution = args.iterated
 
 	## check if planner is accepted
 	if not (inputPlanner == "she" or inputPlanner.startswith("tempo-")):
@@ -92,10 +96,15 @@ if __name__ == "__main__":
 
 	if inputPlanner == "she":
 		## clean current temporal solutions (in case of she, they are not deleted by fast-downward)
-		planFiles = [i for i in os.listdir(".") if i.startswith("sas_plan.") or i.startswith("tmp_sas_plan.")]
+		planFiles = [i for i in os.listdir(".") if i.startswith("sas_plan") or i.startswith("tmp_sas_plan")]
 		for planFile in planFiles:
 			os.remove(planFile)
-		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias seq-sat-lama-2011 --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
+		aliasName = None
+		if iteratedSolution:
+			aliasName = "seq-sat-lama-2011"
+		else:
+			aliasName = "seq-sat-lama-2011-ni"
+		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias %s --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, aliasName, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo"):
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss --overall-memory-limit %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, genClassicDomain, genClassicProblem)
 
@@ -104,13 +113,17 @@ if __name__ == "__main__":
 
 	## convert classical solutions into temporal solutions for she
 	if inputPlanner == "she":
-		solFiles = [i for i in os.listdir(".") if i.startswith("sas_plan.")]
+		solFiles = [i for i in os.listdir(".") if i.startswith("sas_plan")]
 		solFiles.sort(reverse=True)
 		if len(solFiles) == 0:
 			print "Error: No solution to be converted into temporal has been found"
 		else:
-			_, numSol = solFiles[0].split(".")
-			scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_sas_plan.%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], numSol)
+			scheduleCmd = None
+			if iteratedSolution:
+				_, numSol = solFiles[0].split(".")
+				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_sas_plan.%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], numSol)
+			else:
+				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_sas_plan" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0])
 			print "Creating temporal plan: %s" % (scheduleCmd)
 			os.system(scheduleCmd)
 
