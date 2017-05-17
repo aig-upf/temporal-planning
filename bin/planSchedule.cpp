@@ -53,6 +53,7 @@ public:
   }
 
   void readClassicalPlan(const std::string & planFileName,  Domain * t_d,  Domain * c_d){  
+    std::cout << ";";
     for ( Filereader f(std::string(planFileName+"")); !f.f.eof() && f.s.find("; cost =")!=0; f.c = 0 ) {
       f.next();
       f.assert_token( "(" );     
