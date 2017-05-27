@@ -122,12 +122,14 @@ if __name__ == "__main__":
 		else:
 			scheduleCmd = None
 			if iteratedSolution:
-				_, numSol = solFiles[0].split(".")
-				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_%s.%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], planFilePrefix, numSol)
+				for solution in solFiles:
+					_, numSol = solution.split(".")
+					scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_%s.%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solution, planFilePrefix, numSol)
+					print "Creating temporal plan: %s" % (scheduleCmd)
+					os.system(scheduleCmd)
 			else:
 				scheduleCmd = "%s/bin/planSchedule %s %s %s %s > tmp_%s" % (baseFolder, genTempoDomain, genClassicDomain, genTempoProblem, solFiles[0], planFilePrefix)
-			print "Creating temporal plan: %s" % (scheduleCmd)
-			os.system(scheduleCmd)
+				os.system(scheduleCmd)
 
 	## plan validation
 	if os.path.isfile("plan.validation"):
