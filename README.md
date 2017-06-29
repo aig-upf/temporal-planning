@@ -89,7 +89,7 @@ To compile the tool, use the `make` command.
 A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE` or `TP`) and a temporal planning problem. You can run it as follows:
 
 ```
-plan.py [-h] [--generator GENERATOR] [--time TIME] [--memory MEMORY] planner domain problem
+plan.py [-h] [--generator GENERATOR] [--time TIME] [--memory MEMORY] [--iterated] [--no-iterated] planner domain problem
 ```
 
 where:
@@ -109,6 +109,8 @@ where:
 * `--time`: Maximum number of seconds during which Fast Downward will try to find a solution. Default: 3600 seconds.
 
 * `--memory`: Maximum number of MiB that Fast Downward will use to find a solution. Default: 4096 MiB.
+
+* `--iterated`, `--no-iterated`: Whether to continue searching after getting the first solution, or stop after getting the first solution. These flags only work with `TPSHE`. Default: search more after the first solution (iterated).
 
 * `-h`: Shows information about how to use the program.
 
