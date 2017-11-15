@@ -60,7 +60,7 @@ if __name__ == "__main__":
 	planFilePrefix = args.planfile
 
 	## check if planner is accepted
-	if not (inputPlanner == "she" or inputPlanner.startswith("tempo-")):
+	if not (inputPlanner == "she" or inputPlanner.startswith("tempo-") or inputPlanner.startswith("stp-")):
 		print "Error: The specified planner '%s' is not recognized" % inputPlanner
 		exit(-1)
 
@@ -74,7 +74,12 @@ if __name__ == "__main__":
 
 	## generate temporal domains or copy them to working directory
 	if inputGenerator is not None:
-		generatorCmd = "./%s %s %s > %s 2> %s" % (inputGenerator, inputDomain, inputProblem, genTempoDomain, genTempoProblem)
+		inputGeneratorCall = ""
+		if inputGenerator.startswith("/"):
+			inputGeneratorCall = inputGenerator
+		else:
+			inputGeneratorCall = "./" + inputGenerator
+		generatorCmd = "%s %s %s > %s 2> %s" % (inputGeneratorCall, inputDomain, inputProblem, genTempoDomain, genTempoProblem)
 		print "Executing generator: %s" % (generatorCmd)
 		os.system(generatorCmd)
 	else:
@@ -89,6 +94,9 @@ if __name__ == "__main__":
 	elif inputPlanner.startswith("tempo-"):
 		_, bound = inputPlanner.split("-")
 		compileCmd = "%s/bin/compileTempo %s %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, bound, genClassicDomain, genClassicProblem)
+	elif inputPlanner.startswith("stp-"):
+		_, bound = inputPlanner.split("-")
+		compileCmd = "%s/bin/compileTempoParallel %s %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, bound, genClassicDomain, genClassicProblem)
 
 	print "Compiling problem: %s" % (compileCmd)
 	os.system(compileCmd)
@@ -107,7 +115,7 @@ if __name__ == "__main__":
 		else:
 			aliasName = "seq-sat-lama-2011-ni"
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias %s --overall-time-limit %ss --overall-memory-limit %s --plan-file %s %s %s" % (baseFolder, fdBuild, aliasName, timeLimit, memoryLimit, planFilePrefix, genClassicDomain, genClassicProblem)
-	elif inputPlanner.startswith("tempo"):
+	elif inputPlanner.startswith("tempo") or inputPlanner.startswith("stp"):
 		planCmd = "python %s/fd_copy/fast-downward.py --build %s --alias tp-lama --overall-time-limit %ss --overall-memory-limit %s --plan-file %s %s %s" % (baseFolder, fdBuild, timeLimit, memoryLimit, planFilePrefix, genClassicDomain, genClassicProblem)
 
 	print "Compiling temporal problem: %s" % (planCmd)
