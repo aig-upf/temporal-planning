@@ -14,8 +14,7 @@ This documentation aims to explain how experiments with the planners introduced 
 	1. [Manual Usage](#manual-usage)
 		1. [Generator of Domains and Problems](#use-generator-dom-prob)
 		1. [Running TPSHE](#use-tpshe)
-		1. [Running TP](#use-tp)
-		1. [Running STP](#use-stp)
+		1. [Running TP and STP](#use-tp-stp)
 1. [Credits](#credits)
 1. [References](#references)
 
@@ -179,7 +178,7 @@ Since LAMA-2011 is used for `TPSHE`, a classical plan will be obtained instead o
 ./planSchedule <temporal-domain> <classical-domain> <temporal-problem> <classical-plan> > <temporal-plan>
 ```
 
-#### <a name="use-tp"></a>Running TP and STP
+#### <a name="use-tp-stp"></a>Running TP and STP
 
 To use `TP`, you have to run the binary `compileTempo` placed in the `bin` folder.  The command follows this structure:
 
@@ -197,27 +196,6 @@ The following command is an example of how `TP` could be used for the Driverlog 
 
 ```
 ./bin/compileTempo domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl 2 > dom.pddl 2> ins.pddl
-```
-
-Once the domain and the problem have been converted, we can use Fast Downward using the TP-LAMA setting. The command is the following (use the build you used to compile Fast Downward):
-
-```
-python fd_copy/fast-downward.py --build release64 --alias tp-lama dom.pddl ins.pddl
-```
-
-The output of Fast Downward will consist of temporal plans (the name of the files starts with `tmp_sas_plan.`) unlike with `TPSHE`.
-
-#### <a name="use-stp"></a>Running STP
-To use `STP`, you have to run the binary `compileTempoParallel` placed in the `bin` folder. The command follows this structure:
-
-```
-./compileTempoParallel <domain> <problem> <bound> > <output-domain> 2> <output-problem>
-```
-
-The following command is an example of how it is used for the Driverlog domain using bound 2 given that we are in the `temporal-planning` (the root) folder:
-
-```
-./bin/compileTempoParallel domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl 2 > dom.pddl 2> ins.pddl
 ```
 
 Once the domain and the problem have been converted, we can use Fast Downward using the TP-LAMA setting. The command is the following (use the build you used to compile Fast Downward):
