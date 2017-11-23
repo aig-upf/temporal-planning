@@ -1,12 +1,12 @@
 # Temporal Planning
 
-This documentation aims to explain how the experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) can be run.
+This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) can be run.
 
 1. [Installation](#installation)
 	1. [Universal PDDL Parser](#universal-pddl-parser)
 	1. [Planner Compilation](#planner-compilation)
 		1. [Fast Downward Compilation](#fd-compilation)
-		1. [TPSHE and TP Compilation](#tpshe-tempo-compilation)
+		1. [TPSHE, TP and STP Compilation](#tpshe-tempo-stp-compilation)
 	1. [Domain Generator Compilation](#domain-generator-compilation)
 	1. [Plan Validator (VAL)](#plan-validator-compilation)
 1. [Usage](#usage)
@@ -15,6 +15,7 @@ This documentation aims to explain how the experiments with the planners introdu
 		1. [Generator of Domains and Problems](#use-generator-dom-prob)
 		1. [Running TPSHE](#use-tpshe)
 		1. [Running TP](#use-tp)
+		1. [Running STP](#use-stp)
 1. [Credits](#credits)
 1. [References](#references)
 
@@ -54,9 +55,9 @@ cd temporal-planning
 python fd_copy/build.py release64
 ```
 
-#### <a name="tpshe-tempo-compilation"></a>TPSHE and TP Compilation
+#### <a name="tpshe-tempo-stp-compilation"></a>TPSHE, TP and STP Compilation
 
-The planners `TPSHE` and `TP` can be compiled by running the `scons` command in the root directory:
+The `TPSHE`, `TP` and `STP` can be compiled by running the `scons` command in the root directory:
 
 ```
 cd temporal-planning
@@ -99,6 +100,8 @@ where:
 	* If you want to use `TPSHE`, you must write `she`.
 
 	* If you want to use `TP`, you must write `tempo-i` where `i` is the bound you want to use. For example, for bound 2 you should use `tempo-2`, while for bound 3 you should use `tempo-3`.
+	
+	* If you want to use `STP`, you must write `stp-i` where `i` is the bound you want to use. For example, for bound 2 you should use `stp-2`, while for bound 3 you should use `stp-3`. 
 
 * `domain`: Path to the input domain.
 
@@ -176,18 +179,45 @@ Since LAMA-2011 is used for `TPSHE`, a classical plan will be obtained instead o
 ./planSchedule <temporal-domain> <classical-domain> <temporal-problem> <classical-plan> > <temporal-plan>
 ```
 
-#### <a name="use-tp"></a>Running TP
+#### <a name="use-tp"></a>Running TP and STP
 
-To use `TP`, you have to run the binary `compileTempo` placed in the `bin` folder. The command follows this structure:
+To use `TP`, you have to run the binary `compileTempo` placed in the `bin` folder.  The command follows this structure:
 
 ```
 ./compileTempo <domain> <problem> <bound> > <output-domain> 2> <output-problem>
 ```
 
-The following command is an example of how it is used for the Driverlog domain using bound 2 given that we are in the `temporal-planning` (the root) folder:
+On the other hand, to use `STP`, you have to run the binary `compileTempoParallel`. The command follows the same structure than in `TP`:
+
+```
+./compileTempoParallel <domain> <problem> <bound> > <output-domain> 2> <output-problem>
+```
+
+The following command is an example of how `TP` could be used for the Driverlog domain using bound 2 given that we are in the `temporal-planning` (the root) folder. In the case of `STP`, remember that you only have to change `compileTempo` by `compileTempoParallel`:
 
 ```
 ./bin/compileTempo domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl 2 > dom.pddl 2> ins.pddl
+```
+
+Once the domain and the problem have been converted, we can use Fast Downward using the TP-LAMA setting. The command is the following (use the build you used to compile Fast Downward):
+
+```
+python fd_copy/fast-downward.py --build release64 --alias tp-lama dom.pddl ins.pddl
+```
+
+The output of Fast Downward will consist of temporal plans (the name of the files starts with `tmp_sas_plan.`) unlike with `TPSHE`.
+
+#### <a name="use-stp"></a>Running STP
+To use `STP`, you have to run the binary `compileTempoParallel` placed in the `bin` folder. The command follows this structure:
+
+```
+./compileTempoParallel <domain> <problem> <bound> > <output-domain> 2> <output-problem>
+```
+
+The following command is an example of how it is used for the Driverlog domain using bound 2 given that we are in the `temporal-planning` (the root) folder:
+
+```
+./bin/compileTempoParallel domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p10.pddl 2 > dom.pddl 2> ins.pddl
 ```
 
 Once the domain and the problem have been converted, we can use Fast Downward using the TP-LAMA setting. The command is the following (use the build you used to compile Fast Downward):
