@@ -3,9 +3,6 @@
 #define _COMPILE_H_
 
 #include <parser/Instance.h>
-//#include "/home/anders/ownCloud/research/universal-pddl-parser/Instance.h"
-//#include "/home/sjimenez/data/research/experiments/universal-pddl-parser/Instance.h"
-//#include "/home/hectorpal/work/softw-others/anders-jonsson-parser/universal-pddl-parser/Instance.h"
 
 using namespace parser::pddl;
 
@@ -76,7 +73,7 @@ struct graph {
 					}
 			}
 		}
-		
+
 		unsigned ct = 0;
 		for ( DurationMap::iterator j = durationMap.begin(); j != durationMap.end(); ++j )
 			j->second = ct++;
@@ -221,7 +218,7 @@ bool valid( int k, StringVec & v, const GroundVec & w ) {
 			StringVec u( w[i]->params.size() );
 			for ( unsigned j = 0; j < w[i]->params.size(); ++j )
 				u[j] = v[w[i]->params[j]];
-			
+
 			TypeGround * tg = new TypeGround( d->preds.get( w[i]->name ) );
 			tg->insert( *d, u );
 
