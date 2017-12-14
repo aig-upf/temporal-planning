@@ -424,5 +424,11 @@ int main(int argc, char *argv[]) {
     t_plan->compute_causal_links(c_d);
     t_plan->schedule_DAG_with_critical_path(t_d, t_ins);
     std::cout << *t_plan << std::endl;
-    exit(0);
+
+    delete t_plan;
+    delete t_ins;
+    delete c_d;
+    delete t_d;
+
+    return 0;
 }
