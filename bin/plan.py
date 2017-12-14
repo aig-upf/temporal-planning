@@ -7,7 +7,7 @@ import argparse
 
 def getArguments():
 	argParser = argparse.ArgumentParser()
-	argParser.add_argument("planner", help="name of the planner (she, tempo-1, tempo-2, ...)")
+	argParser.add_argument("planner", help="name of the planner (she, seq, tempo-1, tempo-2, stp-1, stp-2, ...)")
 	argParser.add_argument("domain", help="input PDDL domain")
 	argParser.add_argument("problem", help="input PDDL problem")
 	argParser.add_argument("--generator", "-g", default=None, help="generator")
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 	planFilePrefix = args.planfile
 
 	## check if planner is accepted
-	if not (inputPlanner == "she" or inputPlanner.startswith("tempo-") or inputPlanner.startswith("stp-")):
+	if not (inputPlanner == "she" or inputPlanner == "seq" or inputPlanner.startswith("tempo-") or inputPlanner.startswith("stp-")):
 		print "Error: The specified planner '%s' is not recognized" % inputPlanner
 		exit(-1)
 
@@ -91,6 +91,8 @@ if __name__ == "__main__":
 
 	if inputPlanner == "she":
 		compileCmd = "%s/bin/compileSHE %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, genClassicDomain, genClassicProblem)
+	elif inputPlanner == "seq":
+		compileCmd = "%s/bin/compileSequential %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, genClassicDomain, genClassicProblem)
 	elif inputPlanner.startswith("tempo-"):
 		_, bound = inputPlanner.split("-")
 		compileCmd = "%s/bin/compileTempo %s %s %s > %s 2> %s" % (baseFolder, genTempoDomain, genTempoProblem, bound, genClassicDomain, genClassicProblem)
@@ -104,7 +106,7 @@ if __name__ == "__main__":
 	## run fast downward
 	planCmd = None
 
-	if inputPlanner == "she":
+	if inputPlanner == "she" or inputPlanner == "seq":
 		## clean current temporal solutions (in case of she, they are not deleted by fast-downward)
 		planFiles = [i for i in os.listdir(".") if i.startswith(planFilePrefix) or i.startswith("tmp_" + planFilePrefix)]
 		for planFile in planFiles:
@@ -122,7 +124,7 @@ if __name__ == "__main__":
 	os.system(planCmd)
 
 	## convert classical solutions into temporal solutions for she
-	if inputPlanner == "she":
+	if inputPlanner == "she" or inputPlanner == "seq":
 		solFiles = [i for i in os.listdir(".") if i.startswith(planFilePrefix)]
 		solFiles.sort(reverse=True)
 		if len(solFiles) == 0:
@@ -148,9 +150,9 @@ if __name__ == "__main__":
 			print "Error: No plan to validate was found"
 		else:
 			timePrecision = 0.001
-			if inputPlanner == "she":
+			if inputPlanner == "she" or inputPlanner == "seq":
 				timePrecision = 0.0001
-			elif inputPlanner.startswith("tempo"):
+			elif inputPlanner.startswith("tempo") or inputPlanner.startswith("stp"):
 				timePrecision = 0.001
 			valCmd = "%s -v -t %s %s %s %s > plan.validation" % (validatorBinary, timePrecision, genTempoDomain, genTempoProblem, lastPlan)
 			print "Validating plan: %s" % valCmd

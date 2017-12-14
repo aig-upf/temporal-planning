@@ -101,7 +101,8 @@ public:
                     (_actions[i][0] == "START-" + t_d->actions[j]->name) ||
                     (_actions[i][0] == "DO-" + t_d->actions[j]->name) ||
                     (_actions[i][0] == "POP-" + t_d->actions[j]->name) ||
-                    (_actions[i][0] == "END-" + t_d->actions[j]->name)) {
+                    (_actions[i][0] == "END-" + t_d->actions[j]->name) ||
+                    (_actions[i][0] == t_d->actions[j]->name)) {
                     _tindexes.push_back(j);
                     bfound = true;
                     break;
@@ -269,7 +270,8 @@ public:
                 _durations[i] = 0;
             }
 
-            if (_actions[i][0] == "DO-" + t_d->actions[_tindexes[i]]->name) {
+            if ((_actions[i][0] == "DO-" + t_d->actions[_tindexes[i]]->name) ||
+                (_actions[i][0] == t_d->actions[_tindexes[i]]->name)) {
                 TemporalAction *t_a =
                     (TemporalAction *)t_d->actions[_tindexes[i]];
                 StringVec params(_actions[i].begin() + 1, _actions[i].end());
@@ -371,20 +373,23 @@ public:
                        << ss.str() << ") [" << tp._durations[i] << "]"
                        << std::endl;
             } else {
-                if (tp._actions[i][0].find("DO-") == 0) // TPSHE actions
+                if (tp._actions[i][0].find("DO-") == 0) { // TPSHE actions
                     stream << tp._startTimes[i] << ": ("
                            << tp._actions[i][0].substr(3) << ss.str() << ") ["
                            << tp._durations[i] << "]" << std::endl;
-
-                if (tp._actions[i][0].find("PUSH-") == 0) // TPSHE actions
+                } else if (tp._actions[i][0].find("PUSH-") == 0) { // TPSHE actions
                     stream << tp._startTimes[i] << ": ("
                            << tp._actions[i][0].substr(5) << ss.str() << ") ["
                            << tp._durations[i] << "]" << std::endl;
-
-                if (tp._actions[i][0].find("END-") == 0) // TEMPO(1) actions
+                } else if (tp._actions[i][0].find("END-") == 0) { // TEMPO(1) actions
                     stream << tp._startTimes[i] << ": ("
                            << tp._actions[i][0].substr(4) << ss.str() << ") ["
                            << tp._durations[i] << "]" << std::endl;
+                } else {
+                    stream << tp._startTimes[i] << ": (" << tp._actions[i][0]
+                           << ss.str() << ") [" << tp._durations[i] << "]"
+                           << std::endl;
+                }
             }
         }
 
