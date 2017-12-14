@@ -103,7 +103,7 @@ void addActions(Domain *d, Domain *cd) {
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        std::cout << "Usage: ./transformSequential <domain.pddl> <task.pddl>\n";
+        std::cout << "Usage: ./compileSequential <domain.pddl> <task.pddl>\n";
         exit(1);
     }
 

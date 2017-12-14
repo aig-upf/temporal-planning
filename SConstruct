@@ -48,11 +48,11 @@ build_files = [build_dirname + '/' + src for src in sources]
 compileSHE = base.Program( "bin/compileSHE", ["bin/compileSHE.cpp"] )
 compileTempo = base.Program( "bin/compileTempo", ["bin/compileTempo.cpp"] )
 compileTempoParallel = base.Program( "bin/compileTempoParallel", ["bin/compileTempoParallel.cpp"] )
+compileSequential = base.Program( "bin/compileSequential", ["bin/compileSequential.cpp"] )
 planSchedule = base.Program( "bin/planSchedule", ["bin/planSchedule.cpp"] )
-transformSequential = base.Program( "bin/transformSequential", ["bin/transformSequential.cpp"] )
 
 base.AlwaysBuild( compileSHE )
 base.AlwaysBuild( compileTempo )
 base.AlwaysBuild( compileTempoParallel )
+base.AlwaysBuild( compileSequential )
 base.AlwaysBuild( planSchedule )
-base.AlwaysBuild( transformSequential )
