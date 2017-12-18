@@ -45,11 +45,13 @@ base.VariantDir(build_dirname, '.')
 sources = glob.glob( src_path + "/*.cpp" )
 build_files = [build_dirname + '/' + src for src in sources]
 
+compileFull = base.Program( "bin/compileFull", ["bin/compileFull.cpp"] )
 compileSHE = base.Program( "bin/compileSHE", ["bin/compileSHE.cpp"] )
 compileTempo = base.Program( "bin/compileTempo", ["bin/compileTempo.cpp"] )
 compileTempoParallel = base.Program( "bin/compileTempoParallel", ["bin/compileTempoParallel.cpp"] )
 planSchedule = base.Program( "bin/planSchedule", ["bin/planSchedule.cpp"] )
 
+base.AlwaysBuild( compileFull )
 base.AlwaysBuild( compileSHE )
 base.AlwaysBuild( compileTempo )
 base.AlwaysBuild( compileTempoParallel )
