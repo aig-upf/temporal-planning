@@ -6,8 +6,11 @@
 /*
 ActionVec actions;
 CondVec init, goal;
-std::vector<CondVec> mutexes;
+*/
 
+std::vector< CondVec > mutexes;
+
+/*
 bool seps = true, sepe = true;
 
 std::map<unsigned, std::set<unsigned>> prods;       // producibles
@@ -24,7 +27,7 @@ bool mutex(unsigned k, Condition *c, Condition *d) {
 */
 void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
     Filereader f( s );
-    unsigned numVariables, numVariableValues, x, y, z;
+    unsigned x, y, z;
     while ( f.s != "end_metric" ) {
         std::getline( f.f, f.s );
     }
@@ -32,6 +35,8 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
     std::getline( f.f, f.s );
     std::istringstream is( f.getToken() );
     f.next();
+
+    unsigned numVariables;
     is >> numVariables;
 
     for ( unsigned i = 0; i < numVariables; ++i, f.c = 0 ) {
@@ -43,8 +48,10 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
 
         is.clear();
         is.str(f.getToken());
-        f.next();
+        unsigned numVariableValues;
         is >> numVariableValues;
+
+        f.next();
 
         CondVec u;
         for ( unsigned j = 0; j < numVariableValues; ++j ) {
@@ -100,36 +107,44 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
         v.push_back( u );
     }
 
-    /*
     is.clear();
-    is.str(f.getToken());
+    is.str( f.getToken() );
     f.next();
-    is >> m;
-    for (unsigned i = 0; i < m; ++i) {
-        f.assert("begin_mutex_group");
+    unsigned numMutexGroups;
+    is >> numMutexGroups;
+
+    for ( unsigned i = 0; i < numMutexGroups; ++i ) {
+        f.assert_token( "begin_mutex_group" );
 
         is.clear();
         is.str(f.getToken());
+        unsigned numMutexFacts;
+        is >> numMutexFacts;
+
         f.next();
-        is >> n;
 
         CondVec u;
-        for (unsigned j = 0; j < n; ++j) {
+        for ( unsigned j = 0; j < numMutexFacts; ++j ) {
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> x;
+            unsigned varIndex;
+            is >> varIndex;
 
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> y;
+            unsigned varValue;
+            is >> varValue;
 
-            u.push_back(v[x][y]);
+            u.push_back( v[varIndex][varValue] );
         }
-        f.assert("end_mutex_group");
-        mutexes.push_back(u);
+
+        f.assert_token( "end_mutex_group" );
+        mutexes.push_back( u );
     }
+
+    /*
     //	for ( unsigned i = 0; i < mutexes.size(); ++i ) {
     //		for ( unsigned j = 0; j < mutexes[i].size(); ++j )
     //			std::cout << mutexes[i][j]->name << mutexes[i][j]->params << "
