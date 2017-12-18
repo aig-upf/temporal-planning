@@ -52,29 +52,32 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
             f.next();
 
             if ( t[0] != '<' ) {
-                //GroundVec vec;
-                //ins->parseGround( f, vec );
                 Ground * ground = new Ground( f.getToken() );
                 f.assert_token( "(" );
 
-                Lifted * pred = d->preds[ d->preds.index( ground->name ) ];
+                Lifted * pred = d->preds[d->preds.index( ground->name )];
 
                 for ( unsigned k = 0; k < pred->params.size(); ++k ) {
                     if ( k > 0 ) {
                         f.assert_token( "," );
                     }
-                    f.getToken();
-                    //ground->params.push_back(  );
-                }
 
-                /*
-                for ( unsigned k = 0; k < d->preds[d->pmap[c->name]]->params.size(); ++k ) {
-                    if ( k > 0 ) {
-                        f.assert(",");
+                    std::string objName = f.getToken();
+
+                    std::pair< bool, unsigned > res = d->types[pred->params[k]]->parseObject( objName );
+                    if ( res.first ) {
+                        ground->params.push_back( res.second );
                     }
-                    c->params.push_back( ins->omap[d->preds[d->pmap[c->name]]->params[k]][f.getToken()] );
+                    else {
+                        std::pair< bool, int > res2 = d->types[pred->params[j]]->parseConstant( objName );
+                        if ( res2.first ) {
+                          ground->params.push_back( res.second );
+                        }
+                        else {
+                          f.tokenExit( objName );
+                        }
+                    }
                 }
-                */
 
                 f.assert_token( ")" );
 
