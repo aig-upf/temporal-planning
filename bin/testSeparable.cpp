@@ -7,10 +7,12 @@ std::vector< CondVec > mutexes;
 ActionVec actions;
 CondVec init, goal;
 
+std::map< unsigned, std::set< unsigned > > prods;  // producibles
+
 /*
 bool seps = true, sepe = true;
 
-std::map<unsigned, std::set<unsigned>> prods;       // producibles
+
 std::map<unsigned, std::set<unsigned>> envs, conts; // envelopes and contents
 */
 
@@ -312,55 +314,107 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
         f.assert_token( "end_operator" );
     }
 }
-/*
-bool isProducer(Action &a, Condition &c, bool test) {
-    std::set<unsigned> seff, eeff;
-    for (unsigned i = 0; i < a.eff_s.size(); ++i)
-        if (a.eff_s[i]->name == c.name)
-            seff.insert(i);
-    for (unsigned i = 0; i < a.eff_e.size(); ++i)
-        if (a.eff_e[i]->name == c.name)
-            eeff.insert(i);
 
-    if (seff.size() != eeff.size())
-        return false;
+bool isProducer( Action * a, Lifted * l, bool test ) {
+    std::set< Condition * > seff, eeff;
 
-    for (std::set<unsigned>::iterator i = seff.begin(); i != seff.end(); ++i) {
-        if (a.eff_s[*i]->neg)
-            return false;
-        bool b = false;
-        for (std::set<unsigned>::iterator j = eeff.begin(); j != eeff.end();
-             ++j)
-            b |= a.eff_e[*j]->neg && a.eff_s[*i]->params == a.eff_e[*j]->params;
-        if (!b)
-            return false;
+    TemporalAction * ta = dynamic_cast< TemporalAction * >( a );
+
+    And * startEffectsAnd = dynamic_cast< And * >( ta->eff );
+    if ( startEffectsAnd ) {
+        for ( unsigned i = 0; i < startEffectsAnd->conds.size(); ++i ) {
+            Ground * groundEffect = dynamic_cast< Ground * >( startEffectsAnd->conds[i] );
+            if ( groundEffect && groundEffect->name == l->name ) {
+                seff.insert( groundEffect );
+            }
+            Not * negGroundEffect = dynamic_cast< Not * >( startEffectsAnd->conds[i] );
+            if ( negGroundEffect && negGroundEffect->cond->name == l->name ) {
+                seff.insert( negGroundEffect );
+            }
+        }
     }
+    else {
+        Ground * startEffectGround = dynamic_cast< Ground * >( ta->eff );
+        if ( startEffectGround && startEffectGround->name == l->name ) {
+            seff.insert( startEffectGround );
+        }
+        Not * startNegGroundEffect = dynamic_cast< Not * >( ta->eff );
+        if ( startNegGroundEffect && startNegGroundEffect->cond->name == l->name ) {
+            seff.insert( startNegGroundEffect );
+        }
+    }
+
+    And * endEffectsAnd = ta->eff_e;
+    for ( unsigned i = 0; i < endEffectsAnd->conds.size(); ++i ) {
+        Ground * groundEffect = dynamic_cast< Ground * >( endEffectsAnd->conds[i] );
+        if ( groundEffect && groundEffect->name == l->name ) {
+            eeff.insert( groundEffect );
+        }
+        Not * negGroundEffect = dynamic_cast< Not * >( endEffectsAnd->conds[i] );
+        if ( negGroundEffect && negGroundEffect->cond->name == l->name ) {
+            eeff.insert( negGroundEffect );
+        }
+    }
+
+    if ( seff.size() != eeff.size() ) {
+        return false;
+    }
+
+    for ( auto i = seff.begin(); i != seff.end(); ++i ) {
+        if ( dynamic_cast< Not * >( *i ) ) {
+            return false;
+        }
+
+        bool b = false;
+
+        Ground * condi = dynamic_cast< Ground * >( *i );
+        if ( !condi ) {
+            Not * condineg = dynamic_cast< Not * >( *i );
+            if ( condineg ) {
+                condi = condineg->cond;
+            }
+        }
+
+        for ( auto j = eeff.begin(); j != eeff.end(); ++j ) {
+            Not * condj = dynamic_cast< Not * >( *j );
+            b |= condi && condj && condi->params == condj->cond->params;
+        }
+
+        if ( !b ) {
+            return false;
+        }
+    }
+
     return test || seff.size();
 }
 
 void identifyProducibles() {
-    std::set<unsigned> pcand;
-    for (unsigned i = 0; i < d->preds.size(); ++i) {
+    std::set< unsigned > pcand;
+    for ( unsigned i = 0; i < d->preds.size(); ++i ) {
         bool b = true;
-        for (unsigned j = 0; j < ins->init.size(); ++j)
+        for ( unsigned j = 0; j < ins->init.size(); ++j ) {
             b &= ins->init[j]->name != d->preds[i]->name;
-        if (b)
+        }
+        if ( b ) {
             pcand.insert(i);
+        }
     }
 
-    //	std::cout << pcand << "\n";
+    // std::cout << pcand << "\n";
 
-    for (std::set<unsigned>::iterator i = pcand.begin(); i != pcand.end();
-         ++i) {
+    for ( auto i = pcand.begin(); i != pcand.end(); ++i ) {
         bool b = true;
-        for (unsigned j = 0; j < d->actions.size(); ++j)
-            b &= isProducer(*d->actions[j], *d->preds[*i], true);
-        for (unsigned j = 0; b && j < d->actions.size(); ++j)
-            if (isProducer(*d->actions[j], *d->preds[*i], false))
-                prods[*i].insert(j);
+        for ( unsigned j = 0; j < d->actions.size(); ++j ) {
+            b &= isProducer( d->actions[j], d->preds[*i], true );
+        }
+        for ( unsigned j = 0; b && j < d->actions.size(); ++j ) {
+            if ( isProducer( d->actions[j], d->preds[*i], false ) ) {
+                prods[*i].insert( j );
+            }
+        }
     }
 }
-
+/*
 void identifyEnvelopes() {
     for (std::map<unsigned, std::set<unsigned>>::iterator i = prods.begin();
          i != prods.end(); ++i)
@@ -817,12 +871,13 @@ int main( int argc, char *argv[] ) {
     ins = new Instance( *d, argv[2] );
 
     std::vector<CondVec> v;
-    parseTranslation(argv[3], v);
-/*
+    parseTranslation( argv[3], v );
+
     identifyProducibles();
 
-    //	std::cout << prods << "\n";
+    // std::cout << prods << "\n";
 
+/*
     identifyEnvelopes();
 
     //	std::cout << envs << " " << conts << "\n";
