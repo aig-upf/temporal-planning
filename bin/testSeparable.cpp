@@ -267,10 +267,13 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
             is.str( f.getToken() );
             f.next();
             long varValueNew;
-            is >> varValueNew;  // TODO: it can be -1, so we cannot use "unsigned"
+            is >> varValueNew;
 
-            pres.push_back( std::make_pair( varIndex, varValueOld ) );
-            if ( (varValueNew >= 0) && (varValueNew < (long)v[varIndex].size()) ) {
+            if ( varValueOld >= 0 ) {
+                pres.push_back( std::make_pair( varIndex, varValueOld ) );
+            }
+
+            if ( (varValueNew >= 0) && ((unsigned)varValueNew < v[varIndex].size()) ) {
                 effs.push_back( std::make_pair( varIndex, varValueNew ) );
             }
         }
