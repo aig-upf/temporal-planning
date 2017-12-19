@@ -5,10 +5,10 @@
 
 /*
 ActionVec actions;
-CondVec init, goal;
 */
 
 std::vector< CondVec > mutexes;
+CondVec init, goal;
 
 /*
 bool seps = true, sepe = true;
@@ -144,7 +144,6 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
         mutexes.push_back( u );
     }
 
-    /*
     //	for ( unsigned i = 0; i < mutexes.size(); ++i ) {
     //		for ( unsigned j = 0; j < mutexes[i].size(); ++j )
     //			std::cout << mutexes[i][j]->name << mutexes[i][j]->params << "
@@ -152,41 +151,53 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
     //		std::cout << "\n";
     //	}
 
-    f.assert("begin_state");
-    for (unsigned i = 0; i < v.size(); ++i) {
+    f.assert_token( "begin_state" );
+
+    for ( unsigned i = 0; i < v.size(); ++i ) {
         is.clear();
-        is.str(f.getToken());
+        is.str( f.getToken() );
         f.next();
-        is >> x;
-        init.push_back(v[i][x]);
+        unsigned varValue;
+        is >> varValue;
+        init.push_back( v[i][varValue] );
     }
-    f.assert("end_state");
-    f.assert("begin_goal");
+
+    f.assert_token( "end_state" );
+
+    f.assert_token( "begin_goal" );
+    is.clear();
+    is.str( f.getToken() );
+    f.next();
+
+    unsigned numGoalPairings;
+    is >> numGoalPairings;
+
+    for ( unsigned i = 0; i < numGoalPairings; ++i ) {
+        is.clear();
+        is.str( f.getToken() );
+        f.next();
+        unsigned varIndex;
+        is >> varIndex;
+
+        is.clear();
+        is.str( f.getToken() );
+        f.next();
+        unsigned varValue;
+        is >> varValue;
+
+        goal.push_back( v[varIndex][varValue] );
+    }
+
+    f.assert_token( "end_goal" );
+
+    /*
     is.clear();
     is.str(f.getToken());
     f.next();
-    is >> m;
-    for (unsigned i = 0; i < m; ++i) {
-        is.clear();
-        is.str(f.getToken());
-        f.next();
-        is >> x;
+    unsigned numOperators;
+    is >> numOperators;
 
-        is.clear();
-        is.str(f.getToken());
-        f.next();
-        is >> y;
-
-        goal.push_back(v[x][y]);
-    }
-    f.assert("end_goal");
-
-    is.clear();
-    is.str(f.getToken());
-    f.next();
-    is >> m;
-
-    for (unsigned i = 0; i < m; ++i) {
+    for ( unsigned i = 0; i < numOperators; ++i ) {
         f.assert("begin_operator");
 
         Action *a = new Action(f.getToken().substr(3));
