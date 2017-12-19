@@ -273,18 +273,34 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
             }
         }
 
-        //Condition * c = new Condition( "dummy" );
+        Ground * dummyGround = new Ground( "dummy" );
         for ( unsigned j = 0; j < pres.size(); ++j ) {
             for ( unsigned k = 0; k < effs.size(); ++k ) {
                 for ( unsigned l = 0; l < mutexes.size(); ++l ) {
                     if ( mutex( l, v[pres[j].first][pres[j].second], v[effs[k].first][effs[k].second] ) ) {
                         std::cout << l << "\n";
-                        // c->params.push_back( l );
+                        dummyGround->params.push_back( l );
                     }
                 }
             }
         }
-        // a->pre_s.push_back( c );
+
+        And * actionPreStart = dynamic_cast< And * >( a->pre );
+        if ( actionPreStart ) {
+            actionPreStart->add( dummyGround );
+        }
+        else {
+            Ground * actionPreStartGround = dynamic_cast< Ground * >( a->pre );
+            if ( actionPreStartGround ) {
+              And * preAnd = new And;
+              a->pre = preAnd;
+              preAnd->add( dummyGround );
+              preAnd->add( actionPreStartGround );
+            }
+            else {
+                a->pre = dummyGround;
+            }
+        }
 
         is.clear();
         is.str( f.getToken() );
