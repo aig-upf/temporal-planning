@@ -3,11 +3,8 @@
 
 #include "compile.h"
 
-/*
-ActionVec actions;
-*/
-
 std::vector< CondVec > mutexes;
+ActionVec actions;
 CondVec init, goal;
 
 /*
@@ -15,19 +12,19 @@ bool seps = true, sepe = true;
 
 std::map<unsigned, std::set<unsigned>> prods;       // producibles
 std::map<unsigned, std::set<unsigned>> envs, conts; // envelopes and contents
+*/
 
-bool mutex(unsigned k, Condition *c, Condition *d) {
+bool mutex( unsigned k, Condition * c, Condition * d ) {
     bool a = false, b = false;
-    for (unsigned i = 0; i < mutexes[k].size(); ++i) {
+    for ( unsigned i = 0; i < mutexes[k].size(); ++i ) {
         a |= mutexes[k][i] == c;
         b |= mutexes[k][i] == d;
     }
     return a && b;
 }
-*/
+
 void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
     Filereader f( s );
-    unsigned x, y, z;
     while ( f.s != "end_metric" ) {
         std::getline( f.f, f.s );
     }
@@ -76,12 +73,12 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
                         ground->params.push_back( res.second );
                     }
                     else {
-                        std::pair< bool, int > res2 = d->types[pred->params[j]]->parseConstant( objName );
+                        std::pair< bool, int > res2 = d->types[pred->params[k]]->parseConstant( objName );
                         if ( res2.first ) {
-                          ground->params.push_back( res.second );
+                            ground->params.push_back( res.second );
                         }
                         else {
-                          f.tokenExit( objName );
+                            f.tokenExit( objName );
                         }
                     }
                 }
@@ -144,13 +141,6 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
         mutexes.push_back( u );
     }
 
-    //	for ( unsigned i = 0; i < mutexes.size(); ++i ) {
-    //		for ( unsigned j = 0; j < mutexes[i].size(); ++j )
-    //			std::cout << mutexes[i][j]->name << mutexes[i][j]->params << "
-    //";
-    //		std::cout << "\n";
-    //	}
-
     f.assert_token( "begin_state" );
 
     for ( unsigned i = 0; i < v.size(); ++i ) {
@@ -190,94 +180,122 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
 
     f.assert_token( "end_goal" );
 
-    /*
     is.clear();
-    is.str(f.getToken());
+    is.str( f.getToken() );
     f.next();
     unsigned numOperators;
     is >> numOperators;
 
     for ( unsigned i = 0; i < numOperators; ++i ) {
-        f.assert("begin_operator");
+        f.assert_token( "begin_operator" );
 
-        Action *a = new Action(f.getToken().substr(3));
-        Action *act = d->actions[d->amap[a->name]];
+        std::string actionName = f.getToken();
+        Action * a = new Action( actionName );
+        Action * act = d->actions.get( actionName );
+
         f.next();
-        for (unsigned j = 0; j < act->params.size(); ++j) {
-            a->params.push_back(ins->omap[act->params[j]][f.getToken()]);
+
+        for ( unsigned j = 0; j < act->params.size(); ++j ) {
+            std::string objName = f.getToken();
+
+            std::pair< bool, unsigned > res = d->types[act->params[j]]->parseObject( objName );
+            if ( res.first ) {
+                a->params.push_back( res.second );
+            }
+            else {
+                std::pair< bool, int > res2 = d->types[act->params[j]]->parseConstant( objName );
+                if ( res2.first ) {
+                    a->params.push_back( res.second );
+                }
+                else {
+                    f.tokenExit( objName );
+                }
+            }
+
             f.next();
         }
 
         is.clear();
-        is.str(f.getToken());
+        is.str( f.getToken() );
         f.next();
-        is >> n;
+        unsigned numPrevailConditions;
+        is >> numPrevailConditions;
 
-        for (unsigned j = 0; j < n; ++j) {
+        for ( unsigned j = 0; j < numPrevailConditions; ++j ) {
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> x;
+            unsigned varIndex;
+            is >> varIndex;
 
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> y;
+            unsigned varValue;
+            is >> varValue;
         }
 
         is.clear();
-        is.str(f.getToken());
+        is.str( f.getToken() );
         f.next();
-        is >> n;
+        unsigned numEffects;
+        is >> numEffects;
 
-        std::vector<std::pair<unsigned, unsigned>> pres, effs;
-        for (unsigned j = 0; j < n; ++j) {
+        std::vector< std::pair< unsigned, unsigned > > pres, effs;
+        for ( unsigned j = 0; j < numEffects; ++j ) {
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> x;
-
-            is.clear();
-            is.str(f.getToken());
-            f.next();
-            is >> x;
+            unsigned numEffectConditions;
+            is >> numEffectConditions;
 
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> y;
+            unsigned varIndex;
+            is >> varIndex;
 
             is.clear();
-            is.str(f.getToken());
+            is.str( f.getToken() );
             f.next();
-            is >> z;
+            unsigned varValueOld;
+            is >> varValueOld;
 
-            pres.push_back(std::make_pair(x, y));
-            if (z < v[x].size())
-                effs.push_back(std::make_pair(x, z));
+            is.clear();
+            is.str( f.getToken() );
+            f.next();
+            unsigned varValueNew;
+            is >> varValueNew;
+
+            pres.push_back( std::make_pair( varIndex, varValueOld ) );
+            if ( varValueNew < v[varIndex].size() ) {
+                effs.push_back( std::make_pair( varIndex, varValueNew ) );
+            }
         }
 
-        Condition *c = new Condition("dummy");
-        for (unsigned j = 0; j < pres.size(); ++j)
-            for (unsigned k = 0; k < effs.size(); ++k)
-                for (unsigned l = 0; l < mutexes.size(); ++l)
-                    if (mutex(l, v[pres[j].first][pres[j].second],
-                              v[effs[k].first][effs[k].second]))
-                        c->params.push_back(l);
-        a->pre_s.push_back(c);
+        //Condition * c = new Condition( "dummy" );
+        for ( unsigned j = 0; j < pres.size(); ++j ) {
+            for ( unsigned k = 0; k < effs.size(); ++k ) {
+                for ( unsigned l = 0; l < mutexes.size(); ++l ) {
+                    if ( mutex( l, v[pres[j].first][pres[j].second], v[effs[k].first][effs[k].second] ) ) {
+                        std::cout << l << "\n";
+                        // c->params.push_back( l );
+                    }
+                }
+            }
+        }
+        // a->pre_s.push_back( c );
 
         is.clear();
-        is.str(f.getToken());
+        is.str( f.getToken() );
         f.next();
-        is >> n;
+        unsigned operatorCost;
+        is >> operatorCost;
 
-        std::cout << a->name << a->params << ": " << a->pre_s[0]->params
-                  << "\n";
+        actions.push_back( a );
 
-        actions.push_back(a);
-
-        f.assert("end_operator");
-    }*/
+        f.assert_token( "end_operator" );
+    }
 }
 /*
 bool isProducer(Action &a, Condition &c, bool test) {
