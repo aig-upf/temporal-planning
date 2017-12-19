@@ -241,34 +241,34 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
         unsigned numEffects;
         is >> numEffects;
 
-        std::vector< std::pair< unsigned, unsigned > > pres, effs;
+        std::vector< std::pair< long, long > > pres, effs;
         for ( unsigned j = 0; j < numEffects; ++j ) {
             is.clear();
             is.str( f.getToken() );
             f.next();
-            unsigned numEffectConditions;
+            long numEffectConditions;
             is >> numEffectConditions;
 
             is.clear();
             is.str( f.getToken() );
             f.next();
-            unsigned varIndex;
+            long varIndex;
             is >> varIndex;
 
             is.clear();
             is.str( f.getToken() );
             f.next();
-            unsigned varValueOld;
+            long varValueOld;
             is >> varValueOld;
 
             is.clear();
             is.str( f.getToken() );
             f.next();
-            unsigned varValueNew;
-            is >> varValueNew;
+            long varValueNew;
+            is >> varValueNew;  // TODO: it can be -1, so we cannot use "unsigned"
 
             pres.push_back( std::make_pair( varIndex, varValueOld ) );
-            if ( varValueNew < v[varIndex].size() ) {
+            if ( (varValueNew >= 0) && (varValueNew < (long)v[varIndex].size()) ) {
                 effs.push_back( std::make_pair( varIndex, varValueNew ) );
             }
         }
@@ -278,7 +278,6 @@ void parseTranslation( const std::string &s, std::vector< CondVec > &v ) {
             for ( unsigned k = 0; k < effs.size(); ++k ) {
                 for ( unsigned l = 0; l < mutexes.size(); ++l ) {
                     if ( mutex( l, v[pres[j].first][pres[j].second], v[effs[k].first][effs[k].second] ) ) {
-                        std::cout << l << "\n";
                         dummyGround->params.push_back( l );
                     }
                 }
