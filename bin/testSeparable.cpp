@@ -7,13 +7,11 @@ std::vector< CondVec > mutexes;
 ActionVec actions;
 CondVec init, goal;
 
-std::map< unsigned, std::set< unsigned > > prods;  // producibles
+std::map< unsigned, std::set< unsigned > > prods;       // producibles
+std::map< unsigned, std::set< unsigned > > envs, conts; // envelopes and contents
 
 /*
 bool seps = true, sepe = true;
-
-
-std::map<unsigned, std::set<unsigned>> envs, conts; // envelopes and contents
 */
 
 bool mutex( unsigned k, Condition * c, Condition * d ) {
@@ -417,25 +415,39 @@ void identifyProducibles() {
         }
     }
 }
-/*
+
 void identifyEnvelopes() {
-    for (std::map<unsigned, std::set<unsigned>>::iterator i = prods.begin();
-         i != prods.end(); ++i)
-        for (std::set<unsigned>::const_iterator j = i->second.begin();
-             j != i->second.end(); ++j) {
-            //			std::cout << "Producer " << d->actions[*j]->name << " of
-            //resource " << d->preds[i->first]->name << "\n";
-            for (unsigned k = 0; k < d->actions.size(); ++k)
-                if (d->actions[k]->duration() < d->actions[*j]->duration())
-                    for (unsigned l = 0; l < d->actions[k]->pre_o.size(); ++l)
-                        if (d->pmap[d->actions[k]->pre_o[l]->name] ==
-                            (int)i->first) {
-                            envs[*j].insert(i->first);
-                            conts[k].insert(i->first);
+    std::map< unsigned, std::set< unsigned > >::iterator i;
+    for ( i = prods.begin(); i != prods.end(); ++i ) {
+        std::set< unsigned >::const_iterator j;
+        for ( j = i->second.begin(); j != i->second.end(); ++j ) {
+            TemporalAction * aj = get( *j );
+            for ( unsigned k = 0; k < d->actions.size(); ++k ) {
+                TemporalAction * ak = get( k );
+                if ( ak->duration() < aj->duration() ) {
+                    And * akPreo = ak->pre_o;
+                    for ( unsigned l = 0; akPreo && l < akPreo->conds.size(); ++l ) {
+                        Ground * g = dynamic_cast< Ground * >( akPreo->conds[l] );
+                        if ( ! g ) {
+                            Not * n = dynamic_cast< Not * >( akPreo->conds[l] );
+                            if ( n ) {
+                                g = n->cond;
+                            }
                         }
+
+                        // TODO: check if second part of the IF is correct
+                        if ( g && d->preds.index( g->name ) == int( i->first ) ) {
+                            envs[*j].insert( i->first );
+                            conts[k].insert( i->first );
+                        }
+                    }
+                }
+            }
         }
+    }
 }
 
+/*
 void typify(Action *a, Action &b, std::vector<int> &u,
             std::vector<std::string> &w) {
     for (unsigned i = 0; i < u.size(); ++i)
@@ -880,9 +892,9 @@ int main( int argc, char *argv[] ) {
 
     // std::cout << prods << "\n";
 
-/*
     identifyEnvelopes();
 
+/*
     //	std::cout << envs << " " << conts << "\n";
 
     // Detect dependencies among actions
