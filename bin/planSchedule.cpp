@@ -93,16 +93,20 @@ public:
             bool bfound = false;
             for (unsigned j = 0; j < t_d->actions.size(); ++j) {
 
-                if (_actions[i][0] == "POP-" + t_d->actions[j]->name) {
-                    TP_SHE = true;
-                }
-
                 if ((_actions[i][0] == "PUSH-" + t_d->actions[j]->name) ||
                     (_actions[i][0] == "START-" + t_d->actions[j]->name) ||
                     (_actions[i][0] == "DO-" + t_d->actions[j]->name) ||
                     (_actions[i][0] == "POP-" + t_d->actions[j]->name) ||
-                    (_actions[i][0] == "END-" + t_d->actions[j]->name) ||
-                    (_actions[i][0] == t_d->actions[j]->name)) {
+                    (_actions[i][0] == "END-" + t_d->actions[j]->name)) {
+                    TP_SHE = true;
+                }
+
+                if ((TP_SHE && ((_actions[i][0] == "PUSH-" + t_d->actions[j]->name) ||
+                                (_actions[i][0] == "START-" + t_d->actions[j]->name) ||
+                                (_actions[i][0] == "DO-" + t_d->actions[j]->name) ||
+                                (_actions[i][0] == "POP-" + t_d->actions[j]->name) ||
+                                (_actions[i][0] == "END-" + t_d->actions[j]->name))) ||
+                    (!TP_SHE && _actions[i][0] == t_d->actions[j]->name)){
                     _tindexes.push_back(j);
                     bfound = true;
                     break;
@@ -271,7 +275,7 @@ public:
             }
 
             if ((_actions[i][0] == "DO-" + t_d->actions[_tindexes[i]]->name) ||
-                (_actions[i][0] == t_d->actions[_tindexes[i]]->name)) {
+                (!TP_SHE && _actions[i][0] == t_d->actions[_tindexes[i]]->name)) {
                 TemporalAction *t_a =
                     (TemporalAction *)t_d->actions[_tindexes[i]];
                 StringVec params(_actions[i].begin() + 1, _actions[i].end());
@@ -385,7 +389,7 @@ public:
                     stream << tp._startTimes[i] << ": ("
                            << tp._actions[i][0].substr(4) << ss.str() << ") ["
                            << tp._durations[i] << "]" << std::endl;
-                } else {
+                } else if (!tp.TP_SHE) {
                     stream << tp._startTimes[i] << ": (" << tp._actions[i][0]
                            << ss.str() << ") [" << tp._durations[i] << "]"
                            << std::endl;
