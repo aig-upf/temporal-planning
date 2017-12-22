@@ -49,7 +49,7 @@ if __name__ == "__main__":
     plan.runPlanner(baseFolder, "she", inputDomain, inputProblem, timeLimit=8 * 60, planFilePrefix="she_sas_plan", validateSolution=validateSolution)
     lastShePlan = plan.getLastPlanFileName("she_sas_plan")
     if lastShePlan is not None:
-        copyPlanFile(lastSeqPlan)
+        copyPlanFile(lastShePlan)
         print ":: SINGLE HARD ENVELOPE SOLUTION FOUND ::"
         print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
         exit(0)
@@ -73,9 +73,9 @@ if __name__ == "__main__":
 
     for ta in stp_algs:
         plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
-        lastTempoPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
-        if lastTempoPlan is not None:
-            copyPlanFile(lastTempoPlan)
+        lastStpPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
+        if lastStpPlan is not None:
+            copyPlanFile(lastStpPlan)
             print ":: %s SOLUTION FOUND ::" % ta.upper()
             print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
             exit(0)
