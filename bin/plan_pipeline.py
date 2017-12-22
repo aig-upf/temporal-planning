@@ -8,6 +8,8 @@ from shutil import copyfile
 import plan
 
 availableTime = 30 * 60  # num seconds available to find a solution
+validateSolution = True
+memoryLimit = 6000
 
 def getArguments():
     argParser = argparse.ArgumentParser()
@@ -34,10 +36,8 @@ if __name__ == "__main__":
     inputDomain = args.domain
     inputProblem = args.problem
 
-    validateSolution = True
-
     # SEQUENTIAL SOLUTION
-    plan.runPlanner(baseFolder, "seq", inputDomain, inputProblem, timeLimit=8 * 60, planFilePrefix="seq_sas_plan", validateSolution=validateSolution)
+    plan.runPlanner(baseFolder, "seq", inputDomain, inputProblem, timeLimit=8 * 60, memoryLimit=memoryLimit, planFilePrefix="seq_sas_plan", validateSolution=validateSolution)
     lastSeqPlan = plan.getLastPlanFileName("seq_sas_plan")
     if lastSeqPlan is not None:
         copyPlanFile(lastSeqPlan)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         exit(0)
 
     # SINGLE HARD ENVELOPE (SHE) SOLUTION
-    plan.runPlanner(baseFolder, "she", inputDomain, inputProblem, timeLimit=8 * 60, planFilePrefix="she_sas_plan", validateSolution=validateSolution)
+    plan.runPlanner(baseFolder, "she", inputDomain, inputProblem, timeLimit=8 * 60, memoryLimit=memoryLimit, planFilePrefix="she_sas_plan", validateSolution=validateSolution)
     lastShePlan = plan.getLastPlanFileName("she_sas_plan")
     if lastShePlan is not None:
         copyPlanFile(lastShePlan)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     timePerAlg = int(getRemainingTime(startTime) / len(tempo_algs))
 
     for ta in tempo_algs:
-        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
+        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, memoryLimit=memoryLimit, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
         lastTempoPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
         if lastTempoPlan is not None:
             copyPlanFile(lastTempoPlan)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     timePerAlg = int(getRemainingTime(startTime) / len(stp_algs))
 
     for ta in stp_algs:
-        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
+        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, memoryLimit=memoryLimit, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
         lastStpPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
         if lastStpPlan is not None:
             copyPlanFile(lastStpPlan)
