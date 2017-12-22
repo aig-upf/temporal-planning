@@ -7,7 +7,7 @@ import time
 from shutil import copyfile
 import plan
 
-availableTime = 5 * 60  # num seconds available to find a solution
+availableTime = 30 * 60  # num seconds available to find a solution
 
 def getArguments():
     argParser = argparse.ArgumentParser()
@@ -17,6 +17,9 @@ def getArguments():
 
 def getRemainingTime(startTime):
     return availableTime - (time.time() - startTime)
+
+def getElapsedTime(startTime):
+    return time.time() - startTime
 
 def copyPlanFile(planFilename):
     copyfile(planFilename, "tmp_sas_plan")
@@ -31,38 +34,48 @@ if __name__ == "__main__":
     inputDomain = args.domain
     inputProblem = args.problem
 
-    plan.runPlanner(baseFolder, "seq", inputDomain, inputProblem, timeLimit=120, planFilePrefix="seq_sas_plan", validateSolution=True)
+    validateSolution = True
+
+    # SEQUENTIAL SOLUTION
+    plan.runPlanner(baseFolder, "seq", inputDomain, inputProblem, timeLimit=8 * 60, planFilePrefix="seq_sas_plan", validateSolution=validateSolution)
     lastSeqPlan = plan.getLastPlanFileName("seq_sas_plan")
     if lastSeqPlan is not None:
         copyPlanFile(lastSeqPlan)
         print ":: SEQUENTIAL SOLUTION FOUND ::"
+        print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
         exit(0)
 
-    plan.runPlanner(baseFolder, "she", inputDomain, inputProblem, timeLimit=120, planFilePrefix="she_sas_plan", validateSolution=True)
+    # SINGLE HARD ENVELOPE (SHE) SOLUTION
+    plan.runPlanner(baseFolder, "she", inputDomain, inputProblem, timeLimit=8 * 60, planFilePrefix="she_sas_plan", validateSolution=validateSolution)
     lastShePlan = plan.getLastPlanFileName("she_sas_plan")
     if lastShePlan is not None:
         copyPlanFile(lastSeqPlan)
         print ":: SINGLE HARD ENVELOPE SOLUTION FOUND ::"
+        print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
         exit(0)
 
+    # TEMPORAL PLAN WITHOUT SIMULTANEOUS EVENTS
     tempo_algs = ["tempo-2", "tempo-3", "tempo-4"]
     timePerAlg = int(getRemainingTime(startTime) / len(tempo_algs))
 
     for ta in tempo_algs:
-        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=True)
+        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
         lastTempoPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
         if lastTempoPlan is not None:
             copyPlanFile(lastTempoPlan)
             print ":: %s SOLUTION FOUND ::" % ta.upper()
+            print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
             exit(0)
 
+    # TEMPORAL PLAN WITH SIMULTANEOUS EVENTS
     stp_algs = ["stp-2", "stp-3", "stp-4"]
-    timePerAlg = int(getRemainingTime(startTime) / len(tempo_algs))
+    timePerAlg = int(getRemainingTime(startTime) / len(stp_algs))
 
     for ta in stp_algs:
-        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=True)
+        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
         lastTempoPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
         if lastTempoPlan is not None:
             copyPlanFile(lastTempoPlan)
             print ":: %s SOLUTION FOUND ::" % ta.upper()
+            print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
             exit(0)
