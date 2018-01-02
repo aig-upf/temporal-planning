@@ -5,19 +5,28 @@ import sys
 import argparse
 import time
 from shutil import copyfile
+from glob import glob
 import plan
 
-availableTime = 30 * 60  # num seconds available to find a solution
-validateSolution = True
-memoryLimit = 6000
+defaultTime = 30 * 60  # num seconds available to find a solution
+defaultMemory = 6000
+defaultValidate = False
 
 def getArguments():
     argParser = argparse.ArgumentParser()
     argParser.add_argument("domain", help="input PDDL domain")
     argParser.add_argument("problem", help="input PDDL problem")
+    argParser.add_argument("--time", "-t", default=defaultTime, type=int, help="maximum number of seconds available to find a solution")
+    argParser.add_argument("--memory", "-m", default=defaultMemory, help="maximum amount of memory available to solve the problems")
+    argParser.add_argument("--generator", "-g", default=None, help="generator")
+    argParser.add_argument("--validate", dest="validate", action="store_true", help="validate the resulting plan")
+    argParser.add_argument("--no-validate", dest="validate", action="store_false", help="do not validate the resulting plan")
+    argParser.add_argument("--use-full-time", dest="usefulltime", action="store_true", help="each planner tries to use the whole amount of time")
+    argParser.set_defaults(validate=defaultValidate)
+    argParser.set_defaults(usefulltime=False)
     return argParser.parse_args()
 
-def getRemainingTime(startTime):
+def getRemainingTime(startTime, availableTime):
     return availableTime - (time.time() - startTime)
 
 def getElapsedTime(startTime):
@@ -26,56 +35,50 @@ def getElapsedTime(startTime):
 def copyPlanFile(planFilename):
     copyfile(planFilename, "tmp_sas_plan")
 
+def runPlanner(baseFolder, args, startTime, planner, timeLimit):
+    planPrefix = "%s_sas_plan" % planner
+    plan.runPlanner(baseFolder, planner, args.domain, args.problem, timeLimit=timeLimit, memoryLimit=args.memory, planFilePrefix=planPrefix, validateSolution=args.validate, inputGenerator=args.generator)
+    lastPlan = plan.getLastPlanFileName(planPrefix)
+    if lastPlan is not None:
+        copyPlanFile(lastPlan)
+        print ":: %s SOLUTION FOUND ::" % planner.upper()
+        print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
+        for fl in glob("*" + planPrefix + "*"):
+            os.remove(fl)
+        exit(0)
+
+def planSequential(baseFolder, args, startTime):
+    if args.usefulltime:
+        timeLimit = args.time
+    else:
+        timeLimit = int(args.time * 0.25)
+    runPlanner(baseFolder, args, startTime, "seq", timeLimit)
+
+def planSHE(baseFolder, args, startTime):
+    if args.usefulltime:
+        timeLimit = args.time
+    else:
+        timeLimit = int(args.time * 0.25)
+    runPlanner(baseFolder, args, startTime, "she", timeLimit)
+
+def planTempo(baseFolder, args, startTime):
+    tempo_algs = ["tempo-2", "tempo-3", "tempo-4"]
+    timePerAlg = int(getRemainingTime(startTime, args.time) / len(tempo_algs))
+    for ta in tempo_algs:
+        runPlanner(baseFolder, args, startTime, ta, timePerAlg)
+
+def planSTP(baseFolder, args, startTime):
+    stp_algs = ["stp-2", "stp-3", "stp-4"]
+    timePerAlg = int(getRemainingTime(startTime, args.time) / len(stp_algs))
+    for ta in stp_algs:
+        runPlanner(baseFolder, args, startTime, ta, timePerAlg)
+
 if __name__ == "__main__":
     args = getArguments()
-
     startTime = time.time()
-
     baseFolder = os.path.dirname(os.path.realpath(os.path.join(sys.argv[0], "..")))
 
-    inputDomain = args.domain
-    inputProblem = args.problem
-
-    # SEQUENTIAL SOLUTION
-    plan.runPlanner(baseFolder, "seq", inputDomain, inputProblem, timeLimit=8 * 60, memoryLimit=memoryLimit, planFilePrefix="seq_sas_plan", validateSolution=validateSolution)
-    lastSeqPlan = plan.getLastPlanFileName("seq_sas_plan")
-    if lastSeqPlan is not None:
-        copyPlanFile(lastSeqPlan)
-        print ":: SEQUENTIAL SOLUTION FOUND ::"
-        print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
-        exit(0)
-
-    # SINGLE HARD ENVELOPE (SHE) SOLUTION
-    plan.runPlanner(baseFolder, "she", inputDomain, inputProblem, timeLimit=8 * 60, memoryLimit=memoryLimit, planFilePrefix="she_sas_plan", validateSolution=validateSolution)
-    lastShePlan = plan.getLastPlanFileName("she_sas_plan")
-    if lastShePlan is not None:
-        copyPlanFile(lastShePlan)
-        print ":: SINGLE HARD ENVELOPE SOLUTION FOUND ::"
-        print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
-        exit(0)
-
-    # TEMPORAL PLAN WITHOUT SIMULTANEOUS EVENTS
-    tempo_algs = ["tempo-2", "tempo-3", "tempo-4"]
-    timePerAlg = int(getRemainingTime(startTime) / len(tempo_algs))
-
-    for ta in tempo_algs:
-        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, memoryLimit=memoryLimit, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
-        lastTempoPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
-        if lastTempoPlan is not None:
-            copyPlanFile(lastTempoPlan)
-            print ":: %s SOLUTION FOUND ::" % ta.upper()
-            print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
-            exit(0)
-
-    # TEMPORAL PLAN WITH SIMULTANEOUS EVENTS
-    stp_algs = ["stp-2", "stp-3", "stp-4"]
-    timePerAlg = int(getRemainingTime(startTime) / len(stp_algs))
-
-    for ta in stp_algs:
-        plan.runPlanner(baseFolder, ta, inputDomain, inputProblem, timeLimit=timePerAlg, memoryLimit=memoryLimit, planFilePrefix="%s_sas_plan" % ta, validateSolution=validateSolution)
-        lastStpPlan = plan.getLastPlanFileName("%s_sas_plan" % ta)
-        if lastStpPlan is not None:
-            copyPlanFile(lastStpPlan)
-            print ":: %s SOLUTION FOUND ::" % ta.upper()
-            print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
-            exit(0)
+    planSequential(baseFolder, args, startTime)
+    planSHE(baseFolder, args, startTime)
+    planTempo(baseFolder, args, startTime)
+    planSTP(baseFolder, args, startTime)
