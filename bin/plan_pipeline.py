@@ -56,7 +56,7 @@ def planSequential(baseFolder, args, startTime):
 
 def planSHE(baseFolder, args, startTime):
     if args.usefulltime:
-        timeLimit = getRemainingTime(startTime, args.time)
+        timeLimit = int(getRemainingTime(startTime, args.time))
     else:
         timeLimit = int(args.time * 0.25)
     runPlanner(baseFolder, args, startTime, "she", timeLimit)
