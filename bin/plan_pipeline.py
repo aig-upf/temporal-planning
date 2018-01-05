@@ -16,6 +16,7 @@ def getArguments():
     argParser = argparse.ArgumentParser()
     argParser.add_argument("domain", help="input PDDL domain")
     argParser.add_argument("problem", help="input PDDL problem")
+    argParser.add_argument("--plan", "-p", default="tmp_sas_plan", help="name of the output temporal plan")
     argParser.add_argument("--time", "-t", default=defaultTime, type=int, help="maximum number of seconds available to find a solution")
     argParser.add_argument("--memory", "-m", default=defaultMemory, help="maximum amount of memory available to solve the problems")
     argParser.add_argument("--generator", "-g", default=None, help="generator")
@@ -32,15 +33,15 @@ def getRemainingTime(startTime, availableTime):
 def getElapsedTime(startTime):
     return time.time() - startTime
 
-def copyPlanFile(planFilename):
-    copyfile(planFilename, "tmp_sas_plan")
+def copyPlanFile(planFilename, outputPlanFilename):
+    copyfile(planFilename, outputPlanFilename)
 
 def runPlanner(baseFolder, args, startTime, planner, timeLimit):
     planPrefix = "%s_sas_plan" % planner
     plan.runPlanner(baseFolder, planner, args.domain, args.problem, timeLimit=timeLimit, memoryLimit=args.memory, planFilePrefix=planPrefix, validateSolution=args.validate, inputGenerator=args.generator)
     lastPlan = plan.getLastPlanFileName(planPrefix)
     if lastPlan is not None:
-        copyPlanFile(lastPlan)
+        copyPlanFile(lastPlan, args.plan)
         print ":: %s SOLUTION FOUND ::" % planner.upper()
         print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
         for fl in glob("*" + planPrefix + "*"):
