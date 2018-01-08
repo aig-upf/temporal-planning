@@ -16,13 +16,15 @@ def getArguments():
     argParser = argparse.ArgumentParser()
     argParser.add_argument("domain", help="input PDDL domain")
     argParser.add_argument("problem", help="input PDDL problem")
-    argParser.add_argument("--plan", "-p", default="tmp_sas_plan", help="name of the output temporal plan")
+    argParser.add_argument("--plan-file", "-p", dest="planfile", default="tmp_sas_plan", help="name of the output temporal plan")
     argParser.add_argument("--time", "-t", default=defaultTime, type=int, help="maximum number of seconds available to find a solution")
     argParser.add_argument("--memory", "-m", default=defaultMemory, help="maximum amount of memory available to solve the problems")
     argParser.add_argument("--generator", "-g", default=None, help="generator")
+    argParser.add_argument("--no-iterated", dest="iterated", action="store_false", help="stop after finding the first solution (it only works for sequential and tpshe planners)")
     argParser.add_argument("--validate", dest="validate", action="store_true", help="validate the resulting plan")
     argParser.add_argument("--no-validate", dest="validate", action="store_false", help="do not validate the resulting plan")
     argParser.add_argument("--use-full-time", dest="usefulltime", action="store_true", help="each planner tries to use the whole amount of time")
+    argParser.set_defaults(iterated=True)
     argParser.set_defaults(validate=defaultValidate)
     argParser.set_defaults(usefulltime=False)
     return argParser.parse_args()
@@ -38,10 +40,10 @@ def copyPlanFile(planFilename, outputPlanFilename):
 
 def runPlanner(baseFolder, args, startTime, planner, timeLimit):
     planPrefix = "%s_sas_plan" % planner
-    plan.runPlanner(baseFolder, planner, args.domain, args.problem, timeLimit=timeLimit, memoryLimit=args.memory, planFilePrefix=planPrefix, validateSolution=args.validate, inputGenerator=args.generator)
+    plan.runPlanner(baseFolder, planner, args.domain, args.problem, timeLimit=timeLimit, memoryLimit=args.memory, planFilePrefix=planPrefix, iteratedSolution=args.iterated, validateSolution=args.validate, inputGenerator=args.generator)
     lastPlan = plan.getLastPlanFileName(planPrefix)
     if lastPlan is not None:
-        copyPlanFile(lastPlan, args.plan)
+        copyPlanFile(lastPlan, args.planfile)
         print ":: %s SOLUTION FOUND ::" % planner.upper()
         print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
         for fl in glob("*" + planPrefix + "*"):
