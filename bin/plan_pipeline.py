@@ -40,14 +40,17 @@ def copyPlanFile(planFilename, outputPlanFilename):
 
 def runPlanner(baseFolder, args, startTime, planner, timeLimit):
     planPrefix = "%s_sas_plan" % planner
+
+    print "starting technique: %s %s" % (planner, getElapsedTime(startTime))
     plan.runPlanner(baseFolder, planner, args.domain, args.problem, timeLimit=timeLimit, memoryLimit=args.memory, planFilePrefix=planPrefix, iteratedSolution=args.iterated, validateSolution=args.validate, inputGenerator=args.generator)
+    print "technique finished: %s %s" % (planner, getElapsedTime(startTime))
+
     lastPlan = plan.getLastPlanFileName(planPrefix)
     if lastPlan is not None:
         copyPlanFile(lastPlan, args.planfile)
-        print ":: %s SOLUTION FOUND ::" % planner.upper()
-        print ":: ELAPSED TIME - %s ::" % getElapsedTime(startTime)
         for fl in glob("*" + planPrefix + "*"):
             os.remove(fl)
+        print "most useful technique: %s" % planner
         exit(0)
 
 def planSequential(baseFolder, args, startTime):
