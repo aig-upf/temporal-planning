@@ -299,4 +299,45 @@ void recurse( ParamCond * c, unsigned k, StringVec & v, const std::string & pref
 	else typeRec( cd->types[c->params[k]], c, k, v, prefix );
 }
 
+void replaceDurationExpressions( Expression * durationExpr, Condition * c, Domain * d ) {
+    And * a = dynamic_cast< And * >( c );
+    if ( a ) {
+        for ( unsigned i = 0; i < a->conds.size(); ++i ) {
+            replaceDurationExpressions( durationExpr, a->conds[i], d );
+        }
+    }
+
+    FunctionModifier * fm = dynamic_cast< FunctionModifier * >( c );
+    if ( fm ) {
+        replaceDurationExpressions( durationExpr, fm->modifierExpr, d );
+    }
+
+    CompositeExpression * ce = dynamic_cast< CompositeExpression * >( c );
+    if ( ce ) {
+        if ( dynamic_cast< DurationExpression * >( ce->left ) ) {
+            ce->left = dynamic_cast< Expression * >( durationExpr->copy( *d ) );
+        }
+        else {
+            replaceDurationExpressions( durationExpr, ce->left, d );
+        }
+
+        if ( dynamic_cast< DurationExpression * >( ce->right ) ) {
+            ce->right = dynamic_cast< Expression * >( durationExpr->copy( *d ) );
+        }
+        else {
+            replaceDurationExpressions( durationExpr, ce->right, d );
+        }
+    }
+}
+
+void replaceDurationExpressions( Expression * durationExpr, Action * ca, Domain * d ) {
+    if ( ca->pre ) {
+        replaceDurationExpressions( durationExpr, ca->pre, d );
+    }
+
+    if ( ca->eff ) {
+        replaceDurationExpressions( durationExpr, ca->eff, d );
+    }
+}
+
 #endif

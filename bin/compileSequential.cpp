@@ -18,6 +18,12 @@ void addPredicates(Domain *d, Domain *cd) {
     }
 }
 
+void addFunctions(Domain *d, Domain *cd) {
+    for (unsigned i = 0; i < d->funcs.size(); ++i) {
+        cd->createFunction( d->funcs[i]->name, d->funcs[i]->returnType, d->typeList( d->funcs[i] ) );
+    }
+}
+
 void addActionPreconditions(Domain *d, Domain *cd, TemporalAction *a) {
     // precondition = pre_s(a) U ((pre_o(a) U (pre_e(a)) | add_s(a)))
     cd->setPre(a->name, a->pre);
@@ -62,6 +68,23 @@ void addActionAddEffects(Domain *d, Domain *cd, TemporalAction *a) {
             cd->addEff(0, a->name, ga->name, IntVec(ga->params));
         }
     }
+
+    CondVec allStartEffects = a->effects();
+    CondVec allEndEffects = a->endEffects();
+
+    for (unsigned i = 0; i < allStartEffects.size(); ++i) {
+        FunctionModifier * fm = dynamic_cast<FunctionModifier*>(allStartEffects[i]);
+        if (fm) {
+            cd->addFunctionModifier( a->name, dynamic_cast<FunctionModifier*>(fm->copy(*cd)));
+        }
+    }
+
+    for (unsigned i = 0; i < allEndEffects.size(); ++i) {
+        FunctionModifier * fm = dynamic_cast<FunctionModifier*>(allEndEffects[i]);
+        if (fm) {
+            cd->addFunctionModifier( a->name, dynamic_cast<FunctionModifier*>(fm->copy(*cd)));
+        }
+    }
 }
 
 void addActionDeleteEffects(Domain *d, Domain *cd, TemporalAction *a) {
@@ -94,10 +117,11 @@ void addActionDeleteEffects(Domain *d, Domain *cd, TemporalAction *a) {
 void addActions(Domain *d, Domain *cd) {
     for (unsigned i = 0; i < d->actions.size(); ++i) {
         TemporalAction *a = get(i);
-        cd->createAction(a->name, d->typeList(a));
+        Action *ca = cd->createAction(a->name, d->typeList(a));
         addActionPreconditions(d, cd, a);
         addActionAddEffects(d, cd, a);
         addActionDeleteEffects(d, cd, a);
+        replaceDurationExpressions( a->durationExpr, ca, cd );
     }
 }
 
@@ -115,6 +139,7 @@ int main(int argc, char *argv[]) {
     addRequirements(d, cd);
     addTypes(d, cd);
     addPredicates(d, cd);
+    addFunctions(d, cd);
     addActions(d, cd);
 
     ins->metric = false; // nullify temporal metric
