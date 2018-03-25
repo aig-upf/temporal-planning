@@ -3,7 +3,6 @@
 #define _COMPILE_H_
 
 #include <parser/Instance.h>
-#include <typeinfo>
 
 using namespace parser::pddl;
 
@@ -336,13 +335,34 @@ void replaceDurationExpressions( Expression * durationExpr, Condition * c, Domai
     }
 }
 
-void replaceDurationExpressions( Expression * durationExpr, Action * ca, Domain * d ) {
-    if ( ca->pre ) {
-        replaceDurationExpressions( durationExpr, ca->pre, d );
+void replaceDurationExpressions( Expression * durationExpr, Action * a, Domain * d ) {
+    CondVec prec = a->precons();
+    for ( unsigned i = 0; i < prec.size(); ++i ) {
+        replaceDurationExpressions( durationExpr, prec[i], d );
     }
 
-    if ( ca->eff ) {
-        replaceDurationExpressions( durationExpr, ca->eff, d );
+    // TODO: add preconditions at start
+
+    CondVec eff = a->effects();
+    for ( unsigned i = 0; i < eff.size(); ++i ) {
+        replaceDurationExpressions( durationExpr, eff[i], d );
+    }
+
+    TemporalAction * ta = dynamic_cast< TemporalAction * >( a );
+    if ( ta ) {
+        CondVec endeff = ta->endEffects();
+        for ( unsigned i = 0; i < endeff.size(); ++i ) {
+            replaceDurationExpressions( durationExpr, endeff[i], d );
+        }
+    }
+}
+
+void replaceDurationExpressions( Domain * d ) {
+    for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+        TemporalAction * ta = dynamic_cast< TemporalAction * >( d->actions[i] );
+        if ( ta ) {
+            replaceDurationExpressions( ta->durationExpr, ta, d );
+        }
     }
 }
 
