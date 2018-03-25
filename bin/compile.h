@@ -3,6 +3,7 @@
 #define _COMPILE_H_
 
 #include <parser/Instance.h>
+#include <typeinfo>
 
 using namespace parser::pddl;
 
@@ -17,6 +18,11 @@ typedef std::vector< bool > BoolVec;
 typedef std::vector< StringVec > StringDVec;
 typedef std::set< DoublePair > DoublePairSet;
 typedef std::map< double, unsigned > DurationMap;
+
+typedef std::pair< Action *, FunctionModifier * > ActionFunctionModPair;
+typedef std::vector< ActionFunctionModPair > ActionFunctionModPairVec;
+typedef std::pair< Lifted *, ActionFunctionModPairVec > LiftedActionPair;
+typedef std::vector< LiftedActionPair > LiftedActionPairVec;
 
 // Simplified graph just for TPSHE
 struct graph {
@@ -337,6 +343,247 @@ void replaceDurationExpressions( Expression * durationExpr, Action * ca, Domain 
 
     if ( ca->eff ) {
         replaceDurationExpressions( durationExpr, ca->eff, d );
+    }
+}
+
+// fills a vector with the functions whose value is incremented or decremented
+void getVariableFunctions( Action * ac, Condition * c, LiftedActionPairVec & variableFunctions ) {
+    And * a = dynamic_cast< And * >( c );
+    if ( a ) {
+        for ( unsigned i = 0; i < a->conds.size(); ++i ) {
+            getVariableFunctions( ac, c, variableFunctions );
+        }
+    }
+
+    FunctionModifier * fm = dynamic_cast< FunctionModifier * >( c );
+    if ( fm ) {
+        Ground * g = fm->modifiedGround;
+        Lifted * l = g->lifted;
+
+        bool addNewEntry = true;
+
+        for ( unsigned i = 0; i < variableFunctions.size(); ++i ) {
+            if ( variableFunctions[i].first == l) {
+                variableFunctions[i].second.push_back( std::make_pair( ac, fm ) );
+                addNewEntry = false;
+                break;
+            }
+        }
+
+        if ( addNewEntry ) {
+            ActionFunctionModPairVec avec;
+            avec.push_back( std::make_pair( ac, fm ) );
+            variableFunctions.push_back( std::make_pair( l, avec ) );
+        }
+    }
+}
+
+// fills a vector with the functions whose value is incremented or decremented
+LiftedActionPairVec getVariableFunctions( Domain * d ) {
+    const TokenStruct< Action * >& domainActions = d->actions;
+    LiftedActionPairVec variableFunctions;
+
+    for ( unsigned i = 0; i < domainActions.size(); ++i ) {
+        TemporalAction * ta = dynamic_cast< TemporalAction * >( domainActions[i] );
+
+        CondVec actionStartEffects = ta->effects();
+        for ( unsigned j = 0; j < actionStartEffects.size(); ++j ) {
+            getVariableFunctions( ta, actionStartEffects[j], variableFunctions );
+        }
+
+        CondVec actionEndEffects = ta->endEffects();
+        for ( unsigned j = 0; j < actionEndEffects.size(); ++j ) {
+            getVariableFunctions( ta, actionEndEffects[j], variableFunctions );
+        }
+    }
+
+    return variableFunctions;
+}
+
+void fillObjectSets( StringDVec& objectSets, const TypeVec& tv, unsigned currentTypeIndex, int startIndex, int endIndex ) {
+    if ( currentTypeIndex >= tv.size() ) return;
+
+    Type * currentType = tv[currentTypeIndex];
+    unsigned typeObjs = currentType->noObjects();
+    unsigned divisionSize = (endIndex - startIndex) / typeObjs;
+
+    for ( unsigned i = 0; i < typeObjs; ++i ) {
+        std::pair< std::string, int > obj = currentType->object( i );
+        for ( unsigned j = 0; j < divisionSize; ++j ) {
+            objectSets[ startIndex + i * divisionSize + j ].push_back( obj.first );
+        }
+
+        fillObjectSets( objectSets, tv, currentTypeIndex + 1, startIndex + i * divisionSize, startIndex + (i + 1) *  divisionSize);
+    }
+}
+
+// returns all possible object combinations for a vector of types
+StringDVec getObjectSetsForTypes( const TypeVec& tv ) {
+    int totalNumObjectsComb = 0;
+    for ( unsigned i = 0; i < tv.size(); ++i ) {
+        if ( totalNumObjectsComb > 0 ) {
+            totalNumObjectsComb *= tv[i]->noObjects();
+        }
+        else {
+            totalNumObjectsComb = tv[i]->noObjects();
+        }
+    }
+
+    StringDVec objectSets( totalNumObjectsComb );
+    fillObjectSets( objectSets, tv, 0, 0, totalNumObjectsComb );
+    return objectSets;
+}
+
+// gets the grounded function given its lifted predicate and a list of objects
+GroundFunc<double> * getGroundFunc( Lifted * l, StringVec& sv, Instance * ins ) {
+    const GroundVec& initGrounds = ins->init;
+
+    for ( unsigned i = 0; i < initGrounds.size(); ++i ) {
+        if ( l == initGrounds[i]->lifted ) {
+            GroundFunc<double> * gf = dynamic_cast< GroundFunc<double> * >( initGrounds[i] );
+            if ( gf ) {
+                StringVec objList = ins->d.objectList( gf );
+
+                bool objsMatch = true;
+                for ( unsigned i = 0; i < sv.size(); ++i ) {
+                    if ( sv[i] != objList[i] ) {
+                        objsMatch = false;
+                        break;
+                    }
+                }
+
+                if ( objsMatch )
+                    return gf;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+// returns all the possible values for a lifted predicat 'l' with object parameter 'sv'
+std::set< double > getPossibleValues( Lifted * l, StringVec& sv, ActionFunctionModPairVec& actions, Instance * ins ) {
+    // grounded function for which we want to get the possible values
+    GroundFunc<double> * groundFunc = getGroundFunc( l, sv, ins );
+
+    // initial value for the lifted condition with sv parameters
+    double initialValue = groundFunc->value;
+
+    // structure containing all possible values found in the search
+    std::set< double > possibleValues;
+
+    // bfs maximum depth and queue
+    int maxDepth = 10;
+    std::set< std::pair< int, double > > q;
+    q.insert( std::make_pair( 0, initialValue ) );
+
+    while ( !q.empty() ) {
+        std::pair< int, double > currentItem = *(q.begin());
+        q.erase( q.begin() );
+
+        if ( currentItem.first >= maxDepth ) // max depth reached
+            break;
+
+        double currentValue = currentItem.second;
+        groundFunc->value = currentValue; // change value in instance so that it is taken into account
+        possibleValues.insert( currentValue );
+
+        for ( unsigned i = 0; i < actions.size(); ++i ) {
+            Action * a = actions[i].first;
+            FunctionModifier * fm = actions[i].second;
+
+            // coger parámetros de la acción y coger todas las combinasiones de parámetros posibles
+            TypeVec tv;
+            StringVec typeString = ins->d.typeList( a );
+            for ( unsigned j = 0; j < typeString.size(); ++j ) {
+                tv.push_back( ins->d.getType( typeString[j] ) );
+            }
+
+            // each set of objects is a different action
+            StringDVec objSets = getObjectSetsForTypes( tv );
+
+            for ( unsigned j = 0; j < objSets.size(); ++j ) {
+                bool allFunctionParamsFound = true;
+                for ( unsigned k = 0; k < sv.size() && allFunctionParamsFound; ++k ) {
+                    allFunctionParamsFound &= std::find( objSets[j].begin(), objSets[j].end(), sv[k] ) != objSets[j].end();
+                }
+
+                if ( allFunctionParamsFound ) {
+                    // checking precons
+                    bool preconditionsHold = true;
+
+                    CondVec preconds = a->precons();
+                    for ( unsigned j = 0; j < preconds.size() && preconditionsHold; ++j ) {
+                        Condition * c = preconds[j];
+                        CompositeExpression * ce = dynamic_cast< CompositeExpression * >( c );
+                        if ( ce ) {
+                            FunctionExpression * fe = dynamic_cast< FunctionExpression * >( ce->left );
+                            if ( fe && l->name == fe->fun->name ) {
+                                double rightSideExpression = ce->right->evaluate( *ins, objSets[j] );
+
+                                if ( (ce->op == ">" && currentValue <= rightSideExpression) ||
+                                     (ce->op == ">=" && currentValue < rightSideExpression) ||
+                                     (ce->op == "<" && currentValue >= rightSideExpression) ||
+                                     (ce->op == "<=" && currentValue > rightSideExpression) )
+                                {
+                                    preconditionsHold = false;
+                                }
+                            }
+                        }
+                    }
+
+                    // if preconditions hold, add new value to the queue
+                    if ( preconditionsHold ) {
+                        double newValue = currentValue;
+                        double modifiedValue = fm->modifierExpr->evaluate( *ins, objSets[j] );
+                        if ( dynamic_cast< Increase * >( fm ) ) {
+                            newValue += modifiedValue;
+                        }
+                        else if ( dynamic_cast< Decrease * >( fm ) ) {
+                            newValue -= modifiedValue;
+                        }
+
+                        if ( possibleValues.find( newValue ) == possibleValues.end() ) {
+                            q.insert( std::make_pair( currentItem.first + 1, newValue ) );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    groundFunc->value = initialValue; // reset instance value!!
+    return possibleValues;
+}
+
+void getVariableFunctionsValues( Domain * d, Instance * ins ) {
+    LiftedActionPairVec variableFunctions = getVariableFunctions( d );
+
+    for ( unsigned i = 0; i < variableFunctions.size(); ++i ) {
+        LiftedActionPair& lap = variableFunctions[i];
+        Lifted * l = lap.first;
+
+        TypeVec tv;
+        for ( unsigned j = 0; j < l->params.size(); ++j ) {
+            tv.push_back( d->types[l->params[j]] );
+        }
+
+        ActionFunctionModPairVec& actions = lap.second;
+
+        // get possible values for arguments of the function
+        StringDVec objectSets = getObjectSetsForTypes( tv );
+
+        for ( unsigned j = 0; j < objectSets.size(); ++j ) {
+            std::set< double > possibleValues = getPossibleValues( l, objectSets[j], actions, ins );
+            std::cout << possibleValues << "\n";
+        }
+
+        // coger el predicado,ver parámetros y ver cuantos objetos hay
+        // --> las acciones que aplicaremos tendrán este objeto fijado y variaremos loh demah
+        // igual se pueden mirar solo las precondiciones relacionadas con la funcion
+
+        // seleccionar acciones que (1) modifican el valor de la función (podemos cogerlas)
+        // con antelación, y (2) que cumplen las precondiciones!
     }
 }
 
