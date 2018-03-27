@@ -647,10 +647,22 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
 
             // add preconditions
             Ground * modifiedGround = fm->modifiedGround;
-            IntVec precondParams = IntVec( modifiedGround->params ); // copy params of modified ground
-            precondParams.push_back( numActionParams ); // numActionParams = location of current value!
-            d->addPre( false, a->name, ss.str(), precondParams );
+            IntVec currentValueParams = IntVec( modifiedGround->params ); // copy params of modified ground
+            currentValueParams.push_back( numActionParams ); // numActionParams = location of current value!
+            d->addPre( false, a->name, ss.str(), currentValueParams );
             d->addPre( false, a->name, "SUB", incvec( numActionParams, numActionParams + numNewParams ) );
+
+            // add effects
+            TemporalAction * ta = dynamic_cast< TemporalAction * >( a );
+            if ( ta ) {
+                if ( ta->eff_e == 0 ) ta->eff_e = new And;
+                And * andc = dynamic_cast< And * >( ta->eff_e );
+                andc->add( new Not( d->ground( ss.str(), currentValueParams ) ) );
+
+                IntVec nextValueParams = IntVec( modifiedGround->params );
+                nextValueParams.push_back( numActionParams + 1);
+                andc->add( d->ground( ss.str(), nextValueParams ) );
+            }
 
             // addActionDurationFunction( a, d, ins );
         }
