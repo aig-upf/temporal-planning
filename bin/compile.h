@@ -420,10 +420,10 @@ LiftedActionPairVec getVariableFunctions( Domain * d ) {
     return variableFunctions;
 }
 
-void fillObjectSets( StringDVec& objectSets, const TypeVec& tv, unsigned currentTypeIndex, int startIndex, int endIndex ) {
-    if ( currentTypeIndex >= tv.size() ) return;
+void fillObjectSets( StringDVec& objectSets, const StringVec& sv, Domain * d, unsigned currentTypeIndex, int startIndex, int endIndex ) {
+    if ( currentTypeIndex >= sv.size() ) return;
 
-    Type * currentType = tv[currentTypeIndex];
+    Type * currentType = d->getType( sv[currentTypeIndex] );
     unsigned typeObjs = currentType->noObjects();
     unsigned divisionSize = (endIndex - startIndex) / typeObjs;
 
@@ -433,24 +433,25 @@ void fillObjectSets( StringDVec& objectSets, const TypeVec& tv, unsigned current
             objectSets[ startIndex + i * divisionSize + j ].push_back( obj.first );
         }
 
-        fillObjectSets( objectSets, tv, currentTypeIndex + 1, startIndex + i * divisionSize, startIndex + (i + 1) *  divisionSize);
+        fillObjectSets( objectSets, sv, d, currentTypeIndex + 1, startIndex + i * divisionSize, startIndex + (i + 1) *  divisionSize);
     }
 }
 
 // returns all possible object combinations for a vector of types
-StringDVec getObjectSetsForTypes( const TypeVec& tv ) {
+StringDVec getObjectSetsForTypes( const StringVec& sv, Domain * d ) {
     int totalNumObjectsComb = 0;
-    for ( unsigned i = 0; i < tv.size(); ++i ) {
+    for ( unsigned i = 0; i < sv.size(); ++i ) {
+        Type * t = d->getType( sv[i] );
         if ( totalNumObjectsComb > 0 ) {
-            totalNumObjectsComb *= tv[i]->noObjects();
+            totalNumObjectsComb *= t->noObjects();
         }
         else {
-            totalNumObjectsComb = tv[i]->noObjects();
+            totalNumObjectsComb = t->noObjects();
         }
     }
 
     StringDVec objectSets( totalNumObjectsComb );
-    fillObjectSets( objectSets, tv, 0, 0, totalNumObjectsComb );
+    fillObjectSets( objectSets, sv, d, 0, 0, totalNumObjectsComb );
     return objectSets;
 }
 
@@ -482,7 +483,7 @@ GroundFunc<double> * getGroundFunc( Lifted * l, StringVec& sv, Instance * ins ) 
 }
 
 // returns all the possible values for a lifted predicat 'l' with object parameter 'sv'
-std::set< double > getPossibleValues( Lifted * l, StringVec& sv, ActionFunctionModPairVec& actions, Instance * ins ) {
+std::set< double > getPossibleValues( Lifted * l, StringVec& sv, ActionFunctionModPairVec& actions, Domain * d, Instance * ins ) {
     // grounded function for which we want to get the possible values
     GroundFunc<double> * groundFunc = getGroundFunc( l, sv, ins );
 
@@ -515,12 +516,9 @@ std::set< double > getPossibleValues( Lifted * l, StringVec& sv, ActionFunctionM
             // coger parámetros de la acción y coger todas las combinasiones de parámetros posibles
             TypeVec tv;
             StringVec typeString = ins->d.typeList( a );
-            for ( unsigned j = 0; j < typeString.size(); ++j ) {
-                tv.push_back( ins->d.getType( typeString[j] ) );
-            }
 
             // each set of objects is a different action
-            StringDVec objSets = getObjectSetsForTypes( tv );
+            StringDVec objSets = getObjectSetsForTypes( typeString, d );
 
             for ( unsigned j = 0; j < objSets.size(); ++j ) {
                 bool allFunctionParamsFound = true;
@@ -576,35 +574,111 @@ std::set< double > getPossibleValues( Lifted * l, StringVec& sv, ActionFunctionM
     return possibleValues;
 }
 
+void addActionDurationFunction( Action * a, Domain * d, Instance * ins ) {
+    std::string& actionName = a->name;
+    std::string functioName = "DURATION-" + actionName;
+
+    Lifted * l = d->createFunction( functioName, -1 );
+    l->params = IntVec( a->params );
+
+    StringVec sv = d->typeList( l );
+
+    StringDVec possibleAssignments = getObjectSetsForTypes( sv, d );
+    for ( unsigned i = 0; i < possibleAssignments.size(); ++i ) {
+        ins->addInit( functioName, double( 8 ), possibleAssignments[i] );
+    }
+}
+
 void getVariableFunctionsValues( Domain * d, Instance * ins ) {
+    // add type FUNCTION-VALUE, which will be used by the previously increased
+    // decreased values (e.g. energy)
+    d->createType( "FUNCTION-VALUE" );
+
+    // get the functions which are being increased or decreased
     LiftedActionPairVec variableFunctions = getVariableFunctions( d );
 
     for ( unsigned i = 0; i < variableFunctions.size(); ++i ) {
         LiftedActionPair& lap = variableFunctions[i];
-        Lifted * l = lap.first;
-
-        TypeVec tv;
-        for ( unsigned j = 0; j < l->params.size(); ++j ) {
-            tv.push_back( d->types[l->params[j]] );
-        }
-
+        Lifted * l = lap.first; // lifted function
         ActionFunctionModPairVec& actions = lap.second;
 
-        // get possible values for arguments of the function
-        StringDVec objectSets = getObjectSetsForTypes( tv );
+        // get list of types of the lifted function and get possible values for arguments of the function
+        StringVec functionTypes = d->typeList( l );
+        StringDVec objectSets = getObjectSetsForTypes( functionTypes, d ); // all possible instantiations of the function
 
+        std::set< double > finalPossibleValues; // all possible values for the function 'l'
         for ( unsigned j = 0; j < objectSets.size(); ++j ) {
-            std::set< double > possibleValues = getPossibleValues( l, objectSets[j], actions, ins );
-            std::cout << possibleValues << "\n";
+            std::set< double > possibleValues = getPossibleValues( l, objectSets[j], actions, d, ins );
+            for ( auto it = possibleValues.begin(); it != possibleValues.end(); ++it ) {
+                finalPossibleValues.insert( *it );
+            }
         }
 
-        // coger el predicado,ver parámetros y ver cuantos objetos hay
-        // --> las acciones que aplicaremos tendrán este objeto fijado y variaremos loh demah
-        // igual se pueden mirar solo las precondiciones relacionadas con la funcion
+        // for each final possible value, add an object representing it!
+        for ( auto it = finalPossibleValues.begin(); it != finalPossibleValues.end(); ++it ) {
+            std::stringstream ss;
+            ss << l->name << *it;
+            ins->addObject( ss.str(), "FUNCTION-VALUE" );
+        }
 
-        // seleccionar acciones que (1) modifican el valor de la función (podemos cogerlas)
-        // con antelación, y (2) que cumplen las precondiciones!
+        // add predicate for representing the value of the function
+        StringVec functionPredParams = functionTypes;
+        functionPredParams.push_back( "FUNCTION-VALUE" );
+        std::stringstream ss; ss << l->name << "-VALUE";
+        d->createPredicate( ss.str(), functionPredParams );
+
+        // modification of current actions
+        for ( unsigned j = 0; j < actions.size(); ++j ) {
+            Action * a = actions[j].first;
+            FunctionModifier * fm = actions[j].second;
+
+            unsigned numActionParams = a->params.size();
+            unsigned numNewParams = 3; // current, new and incremental function values
+
+            StringVec sv;
+            for ( unsigned i = 0; i < numNewParams; ++i ) {
+                sv.push_back( "FUNCTION-VALUE" );
+            }
+
+            a->addParams( d->convertTypes( sv ) );
+
+            // add precondition
+            Ground * modifiedGround = fm->modifiedGround;
+            IntVec precondParams = IntVec( modifiedGround->params ); // copy params of modified ground
+            precondParams.push_back( numActionParams ); // numActionParams = location of current value!
+            d->addPre( false, a->name, ss.str(), precondParams );
+
+
+            // addActionDurationFunction( a, d, ins );
+        }
     }
+
+    /*
+    SetVec durationIndices( d->actions.size() );
+	for ( unsigned i = 0; i < d->actions.size(); ++i )
+		durationIndices[i] = get( i )->durationExpr->params();
+
+    for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+        if ( durationIndices[i].size() ) {
+            StringVec v;
+            for ( IntSet::iterator j = durationIndices[i].begin(); j != durationIndices[i].end(); ++j )
+                v.push_back( d->types[d->actions[i]->params[*j]]->name );
+            d->createFunction( d->actions[i]->name + "-COST", -1, v );
+        }
+    }
+
+    //
+    for ( unsigned i = 0; i < d->actions.size(); ++i ){
+        if ( durationIndices[i].size() ) {
+            StringVec pars( d->actions[i]->params.size() );
+            IntVec indices( durationIndices[i].begin(), durationIndices[i].end() );
+            recCost( 0, pars, indices, i );
+            std::cout << pars << "\n";
+        }
+    }
+*/
+    // std::cout << *d;
+    //std::cout << *ins;
 }
 
 #endif
