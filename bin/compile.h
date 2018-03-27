@@ -594,6 +594,9 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
     // decreased values (e.g. energy)
     d->createType( "FUNCTION-VALUE" );
 
+    // create SUB predicate with 3 FUNCTION-VALUE as parameter
+    d->createPredicate( "SUB", StringVec( 3, "FUNCTION-VALUE" ) );
+
     // get the functions which are being increased or decreased
     LiftedActionPairVec variableFunctions = getVariableFunctions( d );
 
@@ -642,12 +645,12 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
 
             a->addParams( d->convertTypes( sv ) );
 
-            // add precondition
+            // add preconditions
             Ground * modifiedGround = fm->modifiedGround;
             IntVec precondParams = IntVec( modifiedGround->params ); // copy params of modified ground
             precondParams.push_back( numActionParams ); // numActionParams = location of current value!
             d->addPre( false, a->name, ss.str(), precondParams );
-
+            d->addPre( false, a->name, "SUB", incvec( numActionParams, numActionParams + numNewParams ) );
 
             // addActionDurationFunction( a, d, ins );
         }
@@ -677,7 +680,7 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
     }
 */
-    // std::cout << *d;
+    std::cout << *d;
     //std::cout << *ins;
 }
 
