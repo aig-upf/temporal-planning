@@ -671,7 +671,6 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             for ( unsigned i = 0; i < numNewParams; ++i ) {
                 sv.push_back( variableFunctionTypeName );
             }
-
             a->addParams( d->convertTypes( sv ) );
 
             // add preconditions
@@ -697,16 +696,12 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
     }
 
+    // computation of durations for the actions
     for ( unsigned i = 0; i < d->actions.size(); ++i ) {
         TemporalAction * ta = get( i );
         IntSet durationIndices = ta->durationExpr->params();
         if ( !durationIndices.empty() ) {
-            // identificar si la expresión de duración tiene funciones cambiantes
-            // si las tiene retornarlas y añadir en la función -COST un parámetro
-            // para cada una de ellas
-            // iterar sobre todos los posibles valores para cada una de las funciones,
-            // cambiando el valor dela función en la instancia para hacer el cálculo
-            // correcto
+            // get functions in the duration expression that can vary (i.e. are incremented or decremented)
             LiftedVec durationVariableFunctions;
             getVariableFunctionsFromExpression( ta->durationExpr, variableFunctions, durationVariableFunctions );
 
@@ -718,63 +713,49 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             for ( unsigned j = 0; j < durationVariableFunctions.size(); ++j ) {
                 v.push_back( durationVariableFunctions[j]->name + "-VALUE" );
             }
-            d->createFunction( ta->name + "-COST", -1, v );
+            Lifted * actionCostFunction = d->createFunction( ta->name + "-COST", -1, v );
 
-            //StringDVec objectSets = getObjectSetsForTypes( v, d );
-            //for ( unsigned j = 0; j < objectSets.size(); ++j ) {
-                //std::cout << objectSets[j] << "\n";
+            // add comment
+            StringDVec objectSets = getObjectSetsForTypes( v, d );
+            for ( unsigned j = 0; j < objectSets.size(); ++j ) {
 
-                // necesito saber cual es la funcion variable para probar los posibles valores!
-                for ( unsigned k = 0; k < durationVariableFunctions.size(); ++k ) {
-                    StringDVec functionObjSets = getObjectSetsForTypes( d->typeList( durationVariableFunctions[k] ), d );
-                    for ( unsigned t = 0; t < functionObjSets.size(); ++t ) {
-                        GroundFunc<double> * gf = getGroundFunc( durationVariableFunctions[k], functionObjSets[t], ins );
-                        double initialValue = gf->value;
-
-                        for ( auto it = functionObjToValues[gf->name].begin(); it != functionObjToValues[gf->name].end(); ++it ) {
-                            gf->value = it->second;
-
-                            StringVec objSet = functionObjSets[t];
-
-                            // coger el parámetro de la energía grounded, mapearlo al coste real y calcular la duración
-                            double cost = 10000 * ta->durationExpr->evaluate( *ins, objSet );
-
-                            objSet.push_back( it->first );
-
-                            ins->addInit( ta->name + "-COST", cost, objSet );
-                        }
-
-                        gf->value = initialValue;
+                StringVec fixedValues, variableValues, allValues;
+                for ( unsigned k = 0; k < v.size(); ++k ) {
+                    if ( k < durationIndices.size() ) {
+                        fixedValues.push_back( objectSets[j][k] );
                     }
+                    else {
+                        variableValues.push_back( objectSets[j][k] );
+                    }
+                    allValues.push_back( objectSets[j][k] );
                 }
-            //}
+
+                // somehow assuming that we just have ONE variable function!
+                DoubleVec initialValues;
+                std::vector< GroundFunc<double>* > groundFuncs;
+                for ( unsigned k = 0; k < durationVariableFunctions.size(); ++k ) {
+                    GroundFunc<double> * gf = getGroundFunc( durationVariableFunctions[k], fixedValues, ins );
+                    groundFuncs.push_back( gf );
+                    initialValues.push_back( gf->value );
+                }
+
+                for ( unsigned k = 0; k < durationVariableFunctions.size(); ++k ) {
+                    std::string& functionName = durationVariableFunctions[k]->name;
+                    std::string& functionValue = variableValues[k];
+                    double transformedValue = functionObjToValues[functionName][functionValue];
+                    groundFuncs[k]->value = transformedValue;
+
+                    double cost = 10000 * ta->durationExpr->evaluate( *ins, allValues );
+                    ins->addInit( ta->name + "-COST", cost, allValues );
+                }
+
+                for ( unsigned k = 0; k < durationVariableFunctions.size(); ++k ) {
+                    groundFuncs[k]->value = initialValues[k];
+                }
+            }
         }
     }
 
-    /*
-    SetVec durationIndices( d->actions.size() );
-	for ( unsigned i = 0; i < d->actions.size(); ++i )
-		durationIndices[i] = get( i )->durationExpr->params();
-
-    for ( unsigned i = 0; i < d->actions.size(); ++i ) {
-        if ( durationIndices[i].size() ) {
-            StringVec v;
-            for ( IntSet::iterator j = durationIndices[i].begin(); j != durationIndices[i].end(); ++j )
-                v.push_back( d->types[d->actions[i]->params[*j]]->name );
-            d->createFunction( d->actions[i]->name + "-COST", -1, v );
-        }
-    }
-
-    //
-    for ( unsigned i = 0; i < d->actions.size(); ++i ){
-        if ( durationIndices[i].size() ) {
-            StringVec pars( d->actions[i]->params.size() );
-            IntVec indices( durationIndices[i].begin(), durationIndices[i].end() );
-            recCost( 0, pars, indices, i );
-            std::cout << pars << "\n";
-        }
-    }
-*/
     std::cout << *d;
     std::cout << *ins;
 }
