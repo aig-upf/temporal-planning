@@ -589,6 +589,24 @@ void addActionDurationFunction( Action * a, Domain * d, Instance * ins ) {
     }
 }
 
+void getVariableFunctionsFromExpression( Expression * e, const LiftedActionPairVec& variableFunctions, LiftedVec& lv ) {
+    CompositeExpression * ce = dynamic_cast< CompositeExpression * >( e );
+    if ( ce ) {
+        getVariableFunctionsFromExpression( ce->left, variableFunctions, lv );
+        getVariableFunctionsFromExpression( ce->right, variableFunctions, lv );
+    }
+
+    FunctionExpression * fe = dynamic_cast< FunctionExpression * >( e );
+    if ( fe ) {
+        for ( unsigned i = 0; i < variableFunctions.size(); ++i ) {
+            Lifted * l = variableFunctions[i].first;
+            if ( l->name == fe->fun->name ) {
+                lv.push_back( l );
+            }
+        }
+    }
+}
+
 void getVariableFunctionsValues( Domain * d, Instance * ins ) {
     // add type FUNCTION-VALUE, which will be used by the previously increased
     // decreased values (e.g. energy)
@@ -600,10 +618,16 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
     // get the functions which are being increased or decreased
     LiftedActionPairVec variableFunctions = getVariableFunctions( d );
 
+    std::map< std::string, std::map< std::string, double > > functionObjToValues;
+
     for ( unsigned i = 0; i < variableFunctions.size(); ++i ) {
         LiftedActionPair& lap = variableFunctions[i];
         Lifted * l = lap.first; // lifted function
         ActionFunctionModPairVec& actions = lap.second;
+
+        // add custom type
+        std::string variableFunctionTypeName = l->name + "-VALUE";
+        d->createType( variableFunctionTypeName, "FUNCTION-VALUE" );
 
         // get list of types of the lifted function and get possible values for arguments of the function
         StringVec functionTypes = d->typeList( l );
@@ -618,17 +642,22 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
 
         // for each final possible value, add an object representing it!
+        std::map< std::string, double > correspondences;
         for ( auto it = finalPossibleValues.begin(); it != finalPossibleValues.end(); ++it ) {
             std::stringstream ss;
             ss << l->name << *it;
-            ins->addObject( ss.str(), "FUNCTION-VALUE" );
+            ins->addObject( ss.str(), variableFunctionTypeName );
+            correspondences[ss.str()] = *it;
         }
+        functionObjToValues[l->name] = correspondences;
+
+        //std::cout << functionObjToValues << "\n";
 
         // add predicate for representing the value of the function
         StringVec functionPredParams = functionTypes;
-        functionPredParams.push_back( "FUNCTION-VALUE" );
-        std::stringstream ss; ss << l->name << "-VALUE";
-        d->createPredicate( ss.str(), functionPredParams );
+        functionPredParams.push_back( variableFunctionTypeName );
+        std::string currentFunctionValue = "CURRENT-" + l->name + "-VALUE";
+        d->createPredicate( currentFunctionValue, functionPredParams );
 
         // modification of current actions
         for ( unsigned j = 0; j < actions.size(); ++j ) {
@@ -640,7 +669,7 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
 
             StringVec sv;
             for ( unsigned i = 0; i < numNewParams; ++i ) {
-                sv.push_back( "FUNCTION-VALUE" );
+                sv.push_back( variableFunctionTypeName );
             }
 
             a->addParams( d->convertTypes( sv ) );
@@ -649,7 +678,7 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             Ground * modifiedGround = fm->modifiedGround;
             IntVec currentValueParams = IntVec( modifiedGround->params ); // copy params of modified ground
             currentValueParams.push_back( numActionParams ); // numActionParams = location of current value!
-            d->addPre( false, a->name, ss.str(), currentValueParams );
+            d->addPre( false, a->name, currentFunctionValue, currentValueParams );
             d->addPre( false, a->name, "SUB", incvec( numActionParams, numActionParams + numNewParams ) );
 
             // add effects
@@ -657,14 +686,68 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             if ( ta ) {
                 if ( ta->eff_e == 0 ) ta->eff_e = new And;
                 And * andc = dynamic_cast< And * >( ta->eff_e );
-                andc->add( new Not( d->ground( ss.str(), currentValueParams ) ) );
+                andc->add( new Not( d->ground( currentFunctionValue, currentValueParams ) ) );
 
                 IntVec nextValueParams = IntVec( modifiedGround->params );
                 nextValueParams.push_back( numActionParams + 1);
-                andc->add( d->ground( ss.str(), nextValueParams ) );
+                andc->add( d->ground( currentFunctionValue, nextValueParams ) );
             }
 
             // addActionDurationFunction( a, d, ins );
+        }
+    }
+
+    for ( unsigned i = 0; i < d->actions.size(); ++i ) {
+        TemporalAction * ta = get( i );
+        IntSet durationIndices = ta->durationExpr->params();
+        if ( !durationIndices.empty() ) {
+            // identificar si la expresión de duración tiene funciones cambiantes
+            // si las tiene retornarlas y añadir en la función -COST un parámetro
+            // para cada una de ellas
+            // iterar sobre todos los posibles valores para cada una de las funciones,
+            // cambiando el valor dela función en la instancia para hacer el cálculo
+            // correcto
+            LiftedVec durationVariableFunctions;
+            getVariableFunctionsFromExpression( ta->durationExpr, variableFunctions, durationVariableFunctions );
+
+            // create function for representing cost of the action
+            StringVec v;
+            for ( auto j = durationIndices.begin(); j != durationIndices.end(); ++j ) {
+                v.push_back( d->types[ta->params[*j]]->name );
+            }
+            for ( unsigned j = 0; j < durationVariableFunctions.size(); ++j ) {
+                v.push_back( durationVariableFunctions[j]->name + "-VALUE" );
+            }
+            d->createFunction( ta->name + "-COST", -1, v );
+
+            //StringDVec objectSets = getObjectSetsForTypes( v, d );
+            //for ( unsigned j = 0; j < objectSets.size(); ++j ) {
+                //std::cout << objectSets[j] << "\n";
+
+                // necesito saber cual es la funcion variable para probar los posibles valores!
+                for ( unsigned k = 0; k < durationVariableFunctions.size(); ++k ) {
+                    StringDVec functionObjSets = getObjectSetsForTypes( d->typeList( durationVariableFunctions[k] ), d );
+                    for ( unsigned t = 0; t < functionObjSets.size(); ++t ) {
+                        GroundFunc<double> * gf = getGroundFunc( durationVariableFunctions[k], functionObjSets[t], ins );
+                        double initialValue = gf->value;
+
+                        for ( auto it = functionObjToValues[gf->name].begin(); it != functionObjToValues[gf->name].end(); ++it ) {
+                            gf->value = it->second;
+
+                            StringVec objSet = functionObjSets[t];
+
+                            // coger el parámetro de la energía grounded, mapearlo al coste real y calcular la duración
+                            double cost = 10000 * ta->durationExpr->evaluate( *ins, objSet );
+
+                            objSet.push_back( it->first );
+
+                            ins->addInit( ta->name + "-COST", cost, objSet );
+                        }
+
+                        gf->value = initialValue;
+                    }
+                }
+            //}
         }
     }
 
@@ -693,7 +776,7 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
     }
 */
     std::cout << *d;
-    //std::cout << *ins;
+    std::cout << *ins;
 }
 
 #endif
