@@ -753,11 +753,20 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
                     groundFuncs[k]->value = initialValues[k];
                 }
             }
+
+            ParamCond * newDurationCond = new Lifted(actionCostFunction);
+            newDurationCond->params[0] = 0; // WRONG, make more flexible...
+            unsigned originalNumberParams = ta->params.size() - 3 * durationVariableFunctions.size();
+            for ( unsigned j = 1; j < newDurationCond->params.size(); ++j ) {
+                newDurationCond->params[j] = originalNumberParams + (j - 1) * 3;
+            }
+
+            ta->durationExpr = new FunctionExpression( newDurationCond );
         }
     }
 
     std::cout << *d;
-    std::cout << *ins;
+    // std::cout << *ins;
 }
 
 #endif
