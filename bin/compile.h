@@ -651,13 +651,20 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
         functionObjToValues[l->name] = correspondences;
 
-        //std::cout << functionObjToValues << "\n";
-
         // add predicate for representing the value of the function
         StringVec functionPredParams = functionTypes;
         functionPredParams.push_back( variableFunctionTypeName );
         std::string currentFunctionValue = "CURRENT-" + l->name + "-VALUE";
         d->createPredicate( currentFunctionValue, functionPredParams );
+
+        // create a CURRENT-VALUE for each function
+        for ( unsigned j = 0; j < objectSets.size(); ++j ) {
+            GroundFunc<double> * gf = getGroundFunc( l, objectSets[j], ins );
+            std::stringstream ss; ss << l->name << gf->value;
+            StringVec sv = d->objectList( gf );
+            sv.push_back( ss.str() );
+            ins->addInit( currentFunctionValue, sv );
+        }
 
         // modification of current actions
         for ( unsigned j = 0; j < actions.size(); ++j ) {
@@ -765,8 +772,8 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
     }
 
-    std::cout << *d;
-    // std::cout << *ins;
+    //std::cout << *d;
+    std::cout << *ins;
 }
 
 #endif
