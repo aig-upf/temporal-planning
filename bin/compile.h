@@ -607,6 +607,48 @@ void getVariableFunctionsFromExpression( Expression * e, const LiftedActionPairV
     }
 }
 
+void addIncrementRelatedPredicates( const std::set< double >& finalPossibleValues, Action * a, StringDVec& objectSets, Lifted * l, FunctionModifier * fm, Instance * i ) {
+    Expression * modifierExpr = fm->modifierExpr;
+
+    for ( unsigned i = 0; i < objectSets.size(); ++i ) {
+        GroundFunc<double> * gf = getGroundFunc( l, objectSets[i], ins );
+        double initialValue = gf->value;
+
+        for ( auto it = finalPossibleValues.begin(); it != finalPossibleValues.end(); ++it ) {
+            gf->value = *it;
+
+            double evaluation = modifierExpr->evaluate( *ins, objectSets[i] );
+            double result = gf->value;
+
+            if ( dynamic_cast< Increase * >( fm ) ) {
+                result += evaluation;
+            }
+            else if ( dynamic_cast< Decrease * >( fm ) ) {
+                result -= evaluation;
+            }
+
+            if ( finalPossibleValues.find( result ) != finalPossibleValues.end() ) {
+                std::stringstream currentValue; currentValue << l->name << gf->value;
+                std::stringstream incrementValue; incrementValue << l->name << evaluation;
+                std::stringstream resultValue; resultValue << l->name << result;
+
+                StringVec sv;
+                sv.push_back( currentValue.str() );
+                sv.push_back( resultValue.str() );
+                sv.push_back( incrementValue.str() );
+                ins->addInit( "SUB", sv );
+
+                StringVec sv2 = objectSets[i];
+                sv2.push_back( currentValue.str() );
+                sv2.push_back( incrementValue.str() );
+                ins->addInit( "INCREASE-" + l->name + "-" + a->name, sv2 );
+            }
+        }
+
+        gf->value = initialValue;
+    }
+}
+
 void getVariableFunctionsValues( Domain * d, Instance * ins ) {
     // add type FUNCTION-VALUE, which will be used by the previously increased
     // decreased values (e.g. energy)
@@ -710,6 +752,8 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             }
 
             // addActionDurationFunction( a, d, ins );
+
+            addIncrementRelatedPredicates( finalPossibleValues, a, objectSets, l, fm, ins );
         }
     }
 
@@ -782,8 +826,8 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
     }
 
-    std::cout << *d;
-    //std::cout << *ins;
+    // std::cout << *d;
+    std::cout << *ins;
 }
 
 #endif
