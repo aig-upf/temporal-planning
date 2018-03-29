@@ -680,12 +680,22 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             }
             a->addParams( d->convertTypes( sv ) );
 
+            // add predicate for representing ability to increase current function value by a certain quantity
+            StringVec increasePredParams = functionTypes;
+            increasePredParams.push_back( l->name + "-VALUE" ); // current value
+            increasePredParams.push_back( l->name + "-VALUE" ); // increment value
+            d->createPredicate( "INCREASE-" + l->name + "-" + a->name, increasePredParams );
+
             // add preconditions
             Ground * modifiedGround = fm->modifiedGround;
             IntVec currentValueParams = IntVec( modifiedGround->params ); // copy params of modified ground
             currentValueParams.push_back( numActionParams ); // numActionParams = location of current value!
             d->addPre( false, a->name, currentFunctionValue, currentValueParams );
             d->addPre( false, a->name, "SUB", incvec( numActionParams, numActionParams + numNewParams ) );
+
+            IntVec increaseGroundedParams = currentValueParams;
+            increaseGroundedParams.push_back( numActionParams + 2 );
+            d->addPre( false, a->name, "INCREASE-" + l->name + "-" + a->name, increaseGroundedParams );
 
             // add effects
             TemporalAction * ta = dynamic_cast< TemporalAction * >( a );
@@ -772,8 +782,8 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         }
     }
 
-    //std::cout << *d;
-    std::cout << *ins;
+    std::cout << *d;
+    //std::cout << *ins;
 }
 
 #endif
