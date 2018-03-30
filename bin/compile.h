@@ -906,8 +906,8 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
         removeFunctionModifiers( ta );
     }
 
-    std::cout << *d;
-    std::cerr << *ins;
+    //std::cout << *d;
+    //std::cerr << *ins;
 }
 
 #endif
