@@ -667,9 +667,19 @@ void translateInequalities( TemporalAction * ta, Domain * d, Instance * ins, std
                 else if ( op == "<=" ) predicateName << "LET";
                 predicateName << rightValue;
 
+                bool existsPredicate = false;
+                for ( unsigned j = 0; j < d->preds.size() && !existsPredicate; ++j ) {
+                    if ( predicateName.str() == d->preds[j]->name ) {
+                        existsPredicate = true;
+                    }
+                }
+
                 FunctionExpression * fe = dynamic_cast< FunctionExpression * >( ce->left );
                 StringVec sv( 1, fe->fun->name + "-VALUE" );
-                d->createPredicate( predicateName.str(), sv );
+
+                if ( !existsPredicate ) {
+                    d->createPredicate( predicateName.str(), sv );
+                }
 
                 andConds[i] = new Ground( predicateName.str(), IntVec( 1, ta->params.size() - 3 ) );
 
