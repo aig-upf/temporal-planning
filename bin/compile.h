@@ -649,6 +649,72 @@ void addIncrementRelatedPredicates( const std::set< double >& finalPossibleValue
     }
 }
 
+void translateInequalities( TemporalAction * ta, Domain * d, Instance * ins, std::set< double >& finalPossibleValues ) {
+    And * preStart = dynamic_cast< And * >( ta->pre );
+    if ( preStart ) {
+        CondVec& andConds = preStart->conds;
+        for ( unsigned i = 0; i < andConds.size(); ++i ) {
+            CompositeExpression * ce = dynamic_cast< CompositeExpression * >( andConds[i] );
+            if ( ce ) {
+                std::string& op = ce->op;
+
+                double rightValue = ce->right->evaluate();
+
+                std::stringstream predicateName;
+                if ( op == ">" ) predicateName << "GT";
+                else if ( op == ">=" ) predicateName << "GET";
+                else if ( op == "<" ) predicateName << "LT";
+                else if ( op == "<=" ) predicateName << "LET";
+                predicateName << rightValue;
+
+                FunctionExpression * fe = dynamic_cast< FunctionExpression * >( ce->left );
+                StringVec sv( 1, fe->fun->name + "-VALUE" );
+                d->createPredicate( predicateName.str(), sv );
+
+                andConds[i] = new Ground( predicateName.str(), IntVec( 1, ta->params.size() - 3 ) );
+
+                for ( auto it = finalPossibleValues.begin(); it != finalPossibleValues.end(); ++it ) {
+                    std::stringstream valueStr; valueStr << fe->fun->name << *it;
+                    StringVec sv( 1, valueStr.str() );
+
+                    if ( op == ">" && *it > rightValue ) {
+                        ins->addInit( predicateName.str(), sv );
+                    }
+                    else if ( op == ">=" && *it >= rightValue ) {
+                        ins->addInit( predicateName.str(), sv );
+                    }
+                    else if ( op == "<" && *it < rightValue ) {
+                        ins->addInit( predicateName.str(), sv );
+                    }
+                    else if ( op == "<=" && *it <= rightValue ) {
+                        ins->addInit( predicateName.str(), sv );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void removeFunctionModifiers( TemporalAction * ta ) {
+    And * effStart = dynamic_cast< And * >( ta->eff );
+    CondVec newAnd;
+    for ( unsigned i = 0; i < effStart->conds.size(); ++i ) {
+        if ( !dynamic_cast< FunctionModifier * >( effStart->conds[i] ) ) {
+            newAnd.push_back( effStart->conds[i] );
+        }
+    }
+    effStart->conds = newAnd;
+
+    And * effEnd = dynamic_cast< And * >( ta->eff_e );
+    CondVec newAndEnd;
+    for ( unsigned i = 0; i < effEnd->conds.size(); ++i ) {
+        if ( !dynamic_cast< FunctionModifier * >( effEnd->conds[i] ) ) {
+            newAndEnd.push_back( effEnd->conds[i] );
+        }
+    }
+    effEnd->conds = newAndEnd;
+}
+
 void getVariableFunctionsValues( Domain * d, Instance * ins ) {
     // add type FUNCTION-VALUE, which will be used by the previously increased
     // decreased values (e.g. energy)
@@ -742,6 +808,8 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
             // add effects
             TemporalAction * ta = dynamic_cast< TemporalAction * >( a );
             if ( ta ) {
+                translateInequalities( ta, d, ins, finalPossibleValues );
+
                 if ( ta->eff_e == 0 ) ta->eff_e = new And;
                 And * andc = dynamic_cast< And * >( ta->eff_e );
                 andc->add( new Not( d->ground( currentFunctionValue, currentValueParams ) ) );
@@ -824,10 +892,12 @@ void getVariableFunctionsValues( Domain * d, Instance * ins ) {
 
             ta->durationExpr = new FunctionExpression( newDurationCond );
         }
+
+        removeFunctionModifiers( ta );
     }
 
-    // std::cout << *d;
-    std::cout << *ins;
+    std::cout << *d;
+    std::cerr << *ins;
 }
 
 #endif
