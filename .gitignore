@@ -36,6 +36,7 @@ bin/compileTempoParallel
 bin/planSchedule
 bin/compileSequential
 bin/testSeparable
+bin/planRemove
 
 domains/AllenAlgebra/problems/generator
 
