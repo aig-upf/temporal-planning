@@ -3,7 +3,7 @@
 This folder contains the following temporal planning domains:
 
 * `AllenAlgebra` - Based on Allen's Interval Algebra due to [[Allen, 1985](#ref-tmp-planning-allen)].
-* `Cushing` - Based on an example of [[Cushing et al., 2007]](#ref-tmp-planning-ijcai07).
+* `Cushing` - Based on cases similar to Figure 3 in [[Cushing et al., 2007]](#ref-tmp-planning-ijcai07).
 * `DriverlogShift` - Due to [[Coles et al., 2009](#ref-tmp-planning-dls)].
 * `tempo-sat` - Temporal planning problems from the temporal track of the 8th International Planning Competition (IPC 2014).
 
