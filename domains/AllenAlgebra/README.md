@@ -17,8 +17,17 @@ To make sure that `a_X` is only applied once, precondition `nstarted(X)` ensures
 
 We now define instances of the domain. Each instance consists of intervals `X_1, ..., X_m`, each with a given duration. Each interval `X_i`, `1 <= i <= m`, is initially marked as not started and not ended. The goal state is a series of relations on interval pairs expressed in Allen's interval algebra that we want to achieve. For example, `overlaps(X_1, X_2) /\ overlaps(X_2, X_3) /\ overlaps(X_3, X_4)`.
 
-Given an instance of `AIA`, we compile the domain and instance into new PDDL domain and instance files. The reason is that we want to modify the individual action `a_X = apply-interval(X)` of each interval `X` depending on the desired relations in the goal state. Table~\ref{tab:aia} lists the modifications to actions `a_X` and `a_Y` as a result of a desired relation on intervals `X` and `Y`, in terms of additional preconditions on `a_X` and `a_Y`. We explain these modifications below.
+Given an instance of `AIA`, we compile the domain and instance into new PDDL domain and instance files. The reason is that we want to modify the individual action `a_X = apply-interval(X)` of each interval `X` depending on the desired relations in the goal state. The following table lists the modifications to actions `a_X` and `a_Y` as a result of a desired relation on intervals `X` and `Y`, in terms of additional preconditions on `a_X` and `a_Y`. We explain these modifications below.
 
+|     Relation    |        `pre_o(a_X)`       |        `pre_s(a_Y)`       |        `pre_o(a_Y)`       |  `pre_e(a_Y)` |
+|:---------------:|:-------------------------:|:-------------------------:|:-------------------------:|:-------------:|
+|  `before(X,Y)`  |             -             |        `{ended(X)}`       |             -             |       -       |
+|   `meets(X,Y)`  |             -             |             -             |        `{ended(X)}`       |       -       |
+| `overlaps(X,Y)` |             -             | `{started(X), nended(X)}` |             -             |  `{ended(X)}` |
+|  `starts(X,Y)`  |       `{started(Y)}`      |             -             |       `{started(X)}`      |  `{ended(X)}` |
+|  `during(X,Y)`  |             -             |       `{started(X)}`      |             -             | `{nended(X)}` |
+| `finishes(Y,X)` |       `{nended(Y)}`       |       `{started(X)}`      |       `{nended(X)}`       |       -       |
+|   `equal(X,Y)`  | `{started(Y), nended(Y)}` |             -             | `{started(X), nended(X)}` | `{nended(X)}` |
 
 * `before(X,Y)`: Action `a_X` has to end before `a_Y` starts.
 
