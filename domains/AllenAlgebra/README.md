@@ -2,7 +2,7 @@
 
 Allen's interval algebra [[Allen, 1983](#ref-tmp-planning-allen)] is a calculus for temporal reasoning in logic that defines possible relations between time intervals. Specifically, there are seven possible relations on interval pairs `(X,Y)`. The first six relations also have an inverse, for a total of 13 unidirectional relations.
 
-![Allen's Interval Algebra relations](img/aia-relations-png)
+![Allen's Interval Algebra relations](img/aia-relations.png)
 
 The AIA domain is a novel domain for temporal planning based on Allen's interval algebra. Specifically, the domain was designed with two goals in mind: 1) incorporate diverse forms of required concurrency, not only in the form of single hard envelopes [[Coles et al., 2009](#ref-tmp-planning-dls)]; and 2) include temporal planning instances that require simultaneous events.
 
