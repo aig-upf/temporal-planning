@@ -37,15 +37,20 @@ scons
 
 ### <a name="planner-compilation"></a>Planner Compilation
 
-Firstly, you have to either clone or download this repository. It is important to have the folder next to the `universal-pddl-parser` folder so that it can be properly referenced. To clone it, you can use the following command:
+Firstly, you have to either clone or download this repository. To clone it, you can use the following command:
 
 ```
 git clone https://github.com/aig-upf/temporal-planning.git
 ```
 
+This repository references the `universal-pddl-parser` repository previously cloned and compiled. There are two ways for referencing that repository:
+
+1. You have the `universal-pddl-parser` and the `temporal-planning` repositories next to each other (i.e., in the same folder).
+1. You use the `PDDL_PARSER_PATH` environment variable, which should contain the path to the `universal-pddl-parser` repository.
+
 #### <a name="fd-compilation"></a>Fast Downward Compilation
 
-The Fast Downward version in this repository contains modifications to support temporal planning. However, the steps for compiling it are the same (see section "Compiling the planner" [here](http://www.fast-downward.org/ObtainingAndRunningFastDownward).
+The Fast Downward version in this repository contains modifications to support temporal planning. However, the steps for compiling it are the same (see section "Compiling the planner" [here](http://www.fast-downward.org/ObtainingAndRunningFastDownward)).
 
 For example, in case you wanted to compile the 64-bit version you should run the following commands:
 
@@ -99,8 +104,8 @@ where:
 	* If you want to use `TPSHE`, you must write `she`.
 
 	* If you want to use `TP`, you must write `tempo-i` where `i` is the bound you want to use. For example, for bound 2 you should use `tempo-2`, while for bound 3 you should use `tempo-3`.
-	
-	* If you want to use `STP`, you must write `stp-i` where `i` is the bound you want to use. For example, for bound 2 you should use `stp-2`, while for bound 3 you should use `stp-3`. 
+
+	* If you want to use `STP`, you must write `stp-i` where `i` is the bound you want to use. For example, for bound 2 you should use `stp-2`, while for bound 3 you should use `stp-3`.
 
 * `domain`: Path to the input domain.
 
@@ -215,4 +220,3 @@ The planner is a modified version of the [Fast Downward](http://www.fast-downwar
 * <a name="ref-tmp-planning-icaps15">Jiménez, S., Jonsson, A., and Palacios, H. (2015).</a> [_Temporal Planning With Required Concurrency Using Classical Planning_](http://www.dtic.upf.edu/~jonsson/icaps15.pdf). Proceedings of the 25th International Conference on Automated Planning and Scheduling.
 
 * <a name="ref-val">Howey, R., Long, D., and Fox, M. (2004).</a> [_VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL_](http://ieeexplore.ieee.org/document/1374201/). In Tools with Artificial Intelligence, 2004. ICTAI 2004. 16th IEEE International Conference on (pp. 294-301). IEEE.
-
