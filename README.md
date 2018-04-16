@@ -1,6 +1,6 @@
 # Temporal Planning
 
-This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) can be run.
+This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) can be run. 
 
 1. [Installation](#installation)
 	1. [Universal PDDL Parser](#universal-pddl-parser)
@@ -17,6 +17,8 @@ This documentation aims to explain how experiments with the planners introduced 
 		1. [Running TP and STP](#use-tp-stp)
 1. [Credits](#credits)
 1. [References](#references)
+
+You can find information of the _domains_ contained in this repository in the corresponding folder ([link](domains)).
 
 ## <a name="installation"></a>Installation
 
