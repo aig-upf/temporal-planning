@@ -36,7 +36,7 @@ base.AppendUnique(
 	CXXFLAGS=["-Wall", "-pedantic", "-std=c++11", "-g", "-Wno-long-long"]
 )
 
-base.Append(LIBS=[File(os.path.abspath('../universal-pddl-parser/lib/libparser.a'))])
+base.Append(LIBS=[File(os.path.join(base['pddl_parser_path'], 'lib/libparser.a'))])
 
 # The compilation of the (static & dynamic) library
 build_dirname = 'build'
