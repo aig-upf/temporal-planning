@@ -45,7 +45,7 @@ Given an instance of `AIA`, we compile the domain and instance into new PDDL dom
 
 * `equal(X,Y)`: Actions `a_X` and `a_Y` have to start and end simultaneously.
         
-With these modifications, the temporal planning instance has a plan if and only if all relations on interval pairs are satisfied, with one exception: we cannot model the relation `meets}(X,Y)` such that `Y` is forced to start at the same time as `X` ends, and `Y` starting after `X` ends also satisfies the precondition over all `ended}(X)` of `a_Y`. To model the relation `meets(X,Y)`, we use an auxiliary interval `Z` satisfying `length(Z) = length(X) + length(Y)`, `starts(X,Z)` and `finishes(Y,Z)`.
+With these modifications, the temporal planning instance has a plan if and only if all relations on interval pairs are satisfied, with one exception: we cannot model the relation `meets(X,Y)` such that `Y` is forced to start at the same time as `X` ends, and `Y` starting after `X` ends also satisfies the precondition over all `ended(X)` of `a_Y`. To model the relation `meets(X,Y)`, we use an auxiliary interval `Z` satisfying `length(Z) = length(X) + length(Y)`, `starts(X,Z)` and `finishes(Y,Z)`.
 
 ## References
 * <a name="ref-tmp-planning-allen">Allen, J. F. (1983).</a> [_Maintaining Knowledge about Temporal Intervals_](https://dl.acm.org/citation.cfm?doid=182.358434). Commun. ACM 26(11):832–843.
