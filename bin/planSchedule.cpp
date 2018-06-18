@@ -377,19 +377,22 @@ public:
                        << ss.str() << ") [" << tp._durations[i] << "]"
                        << std::endl;
             } else {
-                if (tp._actions[i][0].find("DO-") == 0) { // TPSHE actions
-                    stream << tp._startTimes[i] << ": ("
-                           << tp._actions[i][0].substr(3) << ss.str() << ") ["
-                           << tp._durations[i] << "]" << std::endl;
-                } else if (tp._actions[i][0].find("PUSH-") == 0) { // TPSHE actions
-                    stream << tp._startTimes[i] << ": ("
-                           << tp._actions[i][0].substr(5) << ss.str() << ") ["
-                           << tp._durations[i] << "]" << std::endl;
-                } else if (tp._actions[i][0].find("END-") == 0) { // TEMPO(1) actions
-                    stream << tp._startTimes[i] << ": ("
-                           << tp._actions[i][0].substr(4) << ss.str() << ") ["
-                           << tp._durations[i] << "]" << std::endl;
-                } else if (!tp.TP_SHE) {
+                if (tp.TP_SHE) {
+                    if (tp._actions[i][0].find("DO-") == 0) { // TPSHE actions
+                        stream << tp._startTimes[i] << ": ("
+                               << tp._actions[i][0].substr(3) << ss.str() << ") ["
+                               << tp._durations[i] << "]" << std::endl;
+                    } else if (tp._actions[i][0].find("PUSH-") == 0) { // TPSHE actions
+                        stream << tp._startTimes[i] << ": ("
+                               << tp._actions[i][0].substr(5) << ss.str() << ") ["
+                               << tp._durations[i] << "]" << std::endl;
+                    } else if (tp._actions[i][0].find("END-") == 0) { // TEMPO(1) actions
+                        stream << tp._startTimes[i] << ": ("
+                               << tp._actions[i][0].substr(4) << ss.str() << ") ["
+                               << tp._durations[i] << "]" << std::endl;
+                    }
+                }
+                else {
                     stream << tp._startTimes[i] << ": (" << tp._actions[i][0]
                            << ss.str() << ") [" << tp._durations[i] << "]"
                            << std::endl;
