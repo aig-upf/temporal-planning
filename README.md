@@ -1,6 +1,6 @@
 # Temporal Planning
 
-This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) can be run. 
+This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) and [[Furelos-Blanco, Jonsson, Palacios, Jiménez, 2018]](#ref-tmp-planning-coplas18) can be run. 
 
 1. [Installation](#installation)
 	1. [Universal PDDL Parser](#universal-pddl-parser)
@@ -93,7 +93,7 @@ To compile the tool, use the `make` command.
 
 ### <a name="automatic-usage"></a>Automatic Usage
 
-A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE` or `TP`) and a temporal planning problem. You can run it as follows:
+A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE`, `TP` or `STP`) and a temporal planning problem. You can run it as follows:
 
 ```
 plan.py [-h] [--generator GENERATOR] [--time TIME] [--memory MEMORY] [--iterated] [--no-iterated] planner domain problem
@@ -220,5 +220,7 @@ The planner is a modified version of the [Fast Downward](http://www.fast-downwar
 ## <a name="references"></a>References
 
 * <a name="ref-tmp-planning-icaps15">Jiménez, S., Jonsson, A., and Palacios, H. (2015).</a> [_Temporal Planning With Required Concurrency Using Classical Planning_](http://www.dtic.upf.edu/~jonsson/icaps15.pdf). Proceedings of the 25th International Conference on Automated Planning and Scheduling.
+
+* <a name="ref-tmp-planning-coplas18">Furelos-Blanco, D., Jonsson, A., Palacios, H., and Jiménez, S. (2018).</a> [_Forward-Search Temporal Planning with Simultaneous Events_](http://www.dtic.upf.edu/~jonsson/coplas18.pdf). Proceedings of the 13th Workshop on Constraint Satisfaction Techniques for Planning and Scheduling (COPLAS) at the International Conference on Automated Planning and Scheduling (ICAPS-18).
 
 * <a name="ref-val">Howey, R., Long, D., and Fox, M. (2004).</a> [_VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL_](http://ieeexplore.ieee.org/document/1374201/). In Tools with Artificial Intelligence, 2004. ICTAI 2004. 16th IEEE International Conference on (pp. 294-301). IEEE.
