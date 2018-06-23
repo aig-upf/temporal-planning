@@ -1,6 +1,6 @@
 # Temporal Planning
 
-This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) and [[Furelos-Blanco, Jonsson, Palacios, Jiménez, 2018]](#ref-tmp-planning-coplas18) can be run. 
+This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) and [[Furelos-Blanco, Jonsson, Palacios and Jiménez, 2018]](#ref-tmp-planning-coplas18) can be run. 
 
 1. [Installation](#installation)
 	1. [Universal PDDL Parser](#universal-pddl-parser)
