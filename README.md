@@ -17,6 +17,8 @@ This documentation aims to explain how experiments with the planners introduced 
 
 You can find information of the _domains_ contained in this repository in the corresponding folder ([link](domains)).
 
+The [CP4TP (Classical Planning for Temporal Planning)](https://ipc2018-temporal.bitbucket.io/planner-abstracts/team1.pdf) planner is a portfolio planner that integrates the different temporal planners implemented in this repository (TPSHE, TP and STP). It was the runner-up of the temporal track of the International Planning Competition (IPC) in 2018. You can find [further information](https://ipc2018-temporal.bitbucket.io/) in the official page of the competition. The code of the portfolio is uploaded [here](https://bitbucket.org/ipc2018-temporal/team1/src/master/).
+
 ## <a name="installation"></a>Installation
 
 Firstly, you have to either clone or download this repository. To clone it, you can use the following command:
@@ -197,4 +199,6 @@ The planner is a modified version of the [Fast Downward](http://www.fast-downwar
 * <a name="ref-tmp-planning-coplas18">Furelos-Blanco, D., Jonsson, A., Palacios, H., and Jiménez, S. (2018).</a> [_Forward-Search Temporal Planning with Simultaneous Events_](http://www.dtic.upf.edu/~jonsson/coplas18.pdf). Proceedings of the 13th Workshop on Constraint Satisfaction Techniques for Planning and Scheduling (COPLAS) at the International Conference on Automated Planning and Scheduling (ICAPS-18).
 
 * <a name="ref-val">Howey, R., Long, D., and Fox, M. (2004).</a> [_VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL_](http://ieeexplore.ieee.org/document/1374201/). In Tools with Artificial Intelligence, 2004. ICTAI 2004. 16th IEEE International Conference on (pp. 294-301). IEEE.
+
+* <a name="ref-cp4tp">Furelos-Blanco, D. and Jonsson, A. (2018).</a> [_CP4TP: A Classical Planning for Temporal Planning Portfolio_](https://ipc2018-temporal.bitbucket.io/planner-abstracts/team1.pdf) ([code](https://bitbucket.org/ipc2018-temporal/team1/src/master/)). Temporal Track of the International Planning Competition (IPC) 2018.
 
