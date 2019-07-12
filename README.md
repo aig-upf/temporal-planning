@@ -3,11 +3,8 @@
 This documentation aims to explain how experiments with the planners introduced by [[Jiménez, Jonsson and Palacios, 2015]](#ref-tmp-planning-icaps15) and [[Furelos-Blanco, Jonsson, Palacios and Jiménez, 2018]](#ref-tmp-planning-coplas18) can be run. 
 
 1. [Installation](#installation)
-	1. [Universal PDDL Parser](#universal-pddl-parser)
-	1. [Planner Compilation](#planner-compilation)
-		1. [Fast Downward Compilation](#fd-compilation)
-		1. [TPSHE, TP and STP Compilation](#tpshe-tempo-stp-compilation)
-	1. [Domain Generator Compilation](#domain-generator-compilation)
+	1. [Fast Downward Compilation](#fd-compilation)
+	1. [TPSHE, TP and STP Compilation](#tpshe-tempo-stp-compilation)
 	1. [Plan Validator (VAL)](#plan-validator-compilation)
 1. [Usage](#usage)
 	1. [Automatic Usage](#automatic-usage)
@@ -22,35 +19,20 @@ You can find information of the _domains_ contained in this repository in the co
 
 ## <a name="installation"></a>Installation
 
-### <a name="universal-pddl-parser"></a>Universal PDDL Parser
-
-The input domains and problems will be parsed using the [Universal PDDL Parser](https://github.com/aig-upf/universal-pddl-parser). You can clone it by executing the following command:
-
-```
-git clone https://github.com/aig-upf/universal-pddl-parser.git
-```
-
-Afterwards, you should compile it using `scons`:
-
-```
-cd universal-pddl-parser
-scons
-```
-
-### <a name="planner-compilation"></a>Planner Compilation
-
 Firstly, you have to either clone or download this repository. To clone it, you can use the following command:
 
 ```
 git clone https://github.com/aig-upf/temporal-planning.git
 ```
 
-This repository references the `universal-pddl-parser` repository previously cloned and compiled. There are two ways for referencing that repository:
+This repository references the `universal-pddl-parser` repository. There are two ways of referencing that repository:
 
-1. You have the `universal-pddl-parser` and the `temporal-planning` repositories next to each other (i.e., in the same folder).
+1. You use the `universal-pddl-parser` submodule inside this repository.
 1. You use the `PDDL_PARSER_PATH` environment variable, which should contain the path to the `universal-pddl-parser` repository.
 
-#### <a name="fd-compilation"></a>Fast Downward Compilation
+The following subsections explain how to compile the two components of the repository: (1) the modified version of Fast Downward and (2) the TPSHE, TP and STP planners.
+
+### <a name="fd-compilation"></a>Fast Downward Compilation
 
 The Fast Downward version in this repository contains modifications to support temporal planning. However, the steps for compiling it are the same (see section "Compiling the planner" [here](http://www.fast-downward.org/ObtainingAndRunningFastDownward)).
 
@@ -61,27 +43,18 @@ cd temporal-planning
 python fd_copy/build.py release64
 ```
 
-#### <a name="tpshe-tempo-stp-compilation"></a>TPSHE, TP and STP Compilation
+### <a name="tpshe-tempo-stp-compilation"></a>TPSHE, TP and STP Compilation
 
-The `TPSHE`, `TP` and `STP` can be compiled by running the `scons` command in the root directory:
+The `TPSHE`, `TP` and `STP` can be compiled by running the following command in the root directory:
 
 ```
 cd temporal-planning
-scons
+./build.sh
 ```
 
 After running these commands, executable files will be created in the `temporal-planning/bin` directory.
 
-### <a name="domain-generator-compilation"></a>Domain Generator Compilation
-
-The Allen Algebra domain requires a generator to create the problems that will be used as the planner's input. You can compile this generator by running the following commands:
-
-```
-cd temporal-planning/domains/AllenAlgebra
-scons
-```
-
-After executing such commands, a file called `generator` will be created inside `AllenAlgebra/problems`.
+In addition, that command also compiles a domain generator called `generator` for the Allen Algebra domain, which is stored in `temporal-planning/domains/AllenAlgebra/problems`.
 
 ### <a name="plan-validator-compilation"></a>Plan Validator (VAL)
 
@@ -224,3 +197,4 @@ The planner is a modified version of the [Fast Downward](http://www.fast-downwar
 * <a name="ref-tmp-planning-coplas18">Furelos-Blanco, D., Jonsson, A., Palacios, H., and Jiménez, S. (2018).</a> [_Forward-Search Temporal Planning with Simultaneous Events_](http://www.dtic.upf.edu/~jonsson/coplas18.pdf). Proceedings of the 13th Workshop on Constraint Satisfaction Techniques for Planning and Scheduling (COPLAS) at the International Conference on Automated Planning and Scheduling (ICAPS-18).
 
 * <a name="ref-val">Howey, R., Long, D., and Fox, M. (2004).</a> [_VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL_](http://ieeexplore.ieee.org/document/1374201/). In Tools with Artificial Intelligence, 2004. ICTAI 2004. 16th IEEE International Conference on (pp. 294-301). IEEE.
+
