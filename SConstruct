@@ -50,9 +50,12 @@ compileTempo = base.Program( "bin/compileTempo", ["bin/compileTempo.cpp"] )
 compileTempoParallel = base.Program( "bin/compileTempoParallel", ["bin/compileTempoParallel.cpp"] )
 compileSequential = base.Program( "bin/compileSequential", ["bin/compileSequential.cpp"] )
 planSchedule = base.Program( "bin/planSchedule", ["bin/planSchedule.cpp"] )
+allenAlgebraGenerator = base.Program( "domains/AllenAlgebra/problems/generator", ["domains/AllenAlgebra/problems/generator.cpp"] )
 
 base.AlwaysBuild( compileSHE )
 base.AlwaysBuild( compileTempo )
 base.AlwaysBuild( compileTempoParallel )
 base.AlwaysBuild( compileSequential )
 base.AlwaysBuild( planSchedule )
+base.AlwaysBuild( allenAlgebraGenerator )
+
