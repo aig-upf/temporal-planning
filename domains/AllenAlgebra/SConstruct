@@ -5,12 +5,12 @@ os.environ["PKG_CONFIG_PATH"] = pkgpath
 
 paths = [
 	"problems/",
-	"../../../universal-pddl-parser/",
+	"../../universal-pddl-parser/",
 ]
 
 mains = [
 	"problems/generator.cpp",
-	"../../../universal-pddl-parser/parser/Domain.cpp",
+	"../../universal-pddl-parser/parser/Domain.cpp",
 ]
 
 sources = []
@@ -39,7 +39,7 @@ env.AppendUnique(
 	]
 )
 
-env.Append(LIBS=[File(os.path.abspath('../../../universal-pddl-parser/lib/libparser.a'))])
+env.Append(LIBS=[File(os.path.abspath('../../universal-pddl-parser/lib/libparser.a'))])
 
 generator = env.Program( "problems/generator", sources + ["problems/generator.cpp"] )
 

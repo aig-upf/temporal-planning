@@ -10,3 +10,7 @@ cd ..
 
 scons
 
+cd domains/AllenAlgebra
+scons
+
+
