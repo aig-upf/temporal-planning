@@ -1,3 +1,6 @@
 [submodule "universal-pddl-parser"]
 	path = universal-pddl-parser
 	url = https://github.com/aig-upf/universal-pddl-parser
+[submodule "VAL"]
+	path = VAL
+	url = https://github.com/KCL-Planning/VAL.git

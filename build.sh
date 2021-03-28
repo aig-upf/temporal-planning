@@ -6,8 +6,12 @@ git submodule update
 
 cd universal-pddl-parser
 scons
-cd ..
 
+cd ../VAL
+cmake CMakeLists.txt
+make
+
+cd ..
 scons
 
 cd domains/AllenAlgebra

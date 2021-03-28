@@ -126,7 +126,7 @@ def transformClassicalSolutions(baseFolder, inputPlanner, genTempoDomain, genCla
 def runValidator(baseFolder, inputPlanner, genTempoDomain, genTempoProblem, planFilePrefix):
     if os.path.isfile("plan.validation"):
         os.remove("plan.validation")
-    validatorBinary = os.path.join(baseFolder, "../VAL/validate")
+    validatorBinary = os.path.join(baseFolder, "VAL/bin/Validate")
     if existsValidator(validatorBinary):
         lastPlan = getLastPlanFileName(planFilePrefix)
         if lastPlan is None:
