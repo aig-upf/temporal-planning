@@ -27,12 +27,14 @@ Firstly, you have to either clone or download this repository. To clone it, you 
 git clone https://github.com/aig-upf/temporal-planning.git
 ```
 
-This repository references the `universal-pddl-parser` repository. There are two ways of referencing that repository:
+Then you can run the `build.sh` script inside the `temporal-planning` folder to download the submodules on which this software depends as well as building the binaries (those for Fast Downward are not built, you should follow the instructions explained [here](#fd-compilation).
 
-1. You use the `universal-pddl-parser` submodule inside this repository.
-1. You use the `PDDL_PARSER_PATH` environment variable, which should contain the path to the `universal-pddl-parser` repository.
+```
+cd temporal-planning
+./build.sh
+```
 
-The following subsections explain how to compile the two components of the repository: (1) the modified version of Fast Downward and (2) the TPSHE, TP and STP planners.
+The following subsections explain how to compile the modified version of Fast Downward and how to run the TPSHE, TP and STP planners.
 
 ### <a name="fd-compilation"></a>Fast Downward Compilation
 
@@ -47,22 +49,11 @@ python fd_copy/build.py release64
 
 ### <a name="tpshe-tempo-stp-compilation"></a>TPSHE, TP and STP Compilation
 
-The `TPSHE`, `TP` and `STP` can be compiled by running the following command in the root directory:
-
-```
-cd temporal-planning
-./build.sh
-```
-
-After running these commands, executable files will be created in the `temporal-planning/bin` directory.
-
-In addition, that command also compiles a domain generator called `generator` for the Allen Algebra domain, which is stored in `temporal-planning/domains/AllenAlgebra/problems`.
+The `TPSHE`, `TP` and `STP` are compiled by running the `build.sh` script, as explained at the beginning of this section. After running this script, executable files will be created in the `temporal-planning/bin` directory. In addition, that command also compiles a domain generator called `generator` for the Allen Algebra domain, which is stored in `temporal-planning/domains/AllenAlgebra/problems`.
 
 ### <a name="plan-validator-compilation"></a>Plan Validator (VAL)
 
-The `VAL` tool by [[Howey, Long and Fox, 2004]](#ref-val) can be used to validate the resulting temporal plans. You can get the code from their [repository](https://github.com/KCL-Planning/VAL). To run the script in the next section, the `VAL` folder must be in the same folder than the Universal PDDL Parser and the Temporal Planning Folders.
-
-To compile the tool, use the `make` command.
+The `VAL` tool by [[Howey, Long and Fox, 2004]](#ref-val) can be used to validate the resulting temporal plans. You can find this tool as a submodule in this repository. The original code of `VAL` can be found in [this repository](https://github.com/KCL-Planning/VAL). This tool was also compiled using the `build.sh` script introduced at the beginning of this section.
 
 ## <a name="usage"></a>Usage
 
