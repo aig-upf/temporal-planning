@@ -4,20 +4,22 @@ This documentation aims to explain how experiments with the planners introduced 
 
 1. [Installation](#installation)
 	1. [Fast Downward Compilation](#fd-compilation)
-	1. [TPSHE, TP and STP Compilation](#tpshe-tempo-stp-compilation)
+	1. [SEQ, TPSHE, TP and STP Compilation](#seq-tpshe-tempo-stp-compilation)
 	1. [Plan Validator (VAL)](#plan-validator-compilation)
 1. [Usage](#usage)
 	1. [Automatic Usage](#automatic-usage)
+		1. [Running a Single Planner](#single-planner)
+		1. [Running a Portfolio (CP4TP)](#cp4tp)
 	1. [Manual Usage](#manual-usage)
 		1. [Generator of Domains and Problems](#use-generator-dom-prob)
-		1. [Running TPSHE](#use-tpshe)
+		1. [Running the SEQ and TPSHE](#use-seq-tpshe)
 		1. [Running TP and STP](#use-tp-stp)
 1. [Credits](#credits)
 1. [References](#references)
 
 You can find information of the _domains_ contained in this repository in the corresponding folder ([link](domains)).
 
-The [CP4TP (Classical Planning for Temporal Planning)](https://ipc2018-temporal.bitbucket.io/planner-abstracts/team1.pdf) planner is a portfolio planner that integrates the different temporal planners implemented in this repository (TPSHE, TP and STP). It was the runner-up of the temporal track of the International Planning Competition (IPC) in 2018. You can find [further information](https://ipc2018-temporal.bitbucket.io/) in the official page of the competition. The code of the portfolio is uploaded [here](https://bitbucket.org/ipc2018-temporal/team1/src/master/).
+The [CP4TP (Classical Planning for Temporal Planning)](#ref-cp4tp) planner is a portfolio planner that integrates the different temporal planners implemented in this repository: a sequential planner (`SEQ`), `TPSHE`, `TP` and `STP`. It was the runner-up of the temporal track of the International Planning Competition (IPC) in 2018. You can find [further information](https://ipc2018-temporal.bitbucket.io/) in the official page of the competition. The code of the portfolio is uploaded [here](https://bitbucket.org/ipc2018-temporal/team1/src/master/), but you can follow the [instructions in this repository](#cp4tp) to run it.
 
 ## <a name="installation"></a>Installation
 
@@ -34,7 +36,7 @@ cd temporal-planning
 ./build.sh
 ```
 
-The following subsections explain how to compile the modified version of Fast Downward and how to run the TPSHE, TP and STP planners.
+The following subsections explain how to compile the modified version of Fast Downward and how to run the `TPSHE`, `TP` and `STP` planners.
 
 ### <a name="fd-compilation"></a>Fast Downward Compilation
 
@@ -47,9 +49,9 @@ cd temporal-planning
 python fd_copy/build.py release64
 ```
 
-### <a name="tpshe-tempo-stp-compilation"></a>TPSHE, TP and STP Compilation
+### <a name="seq-tpshe-tempo-stp-compilation"></a>SEQ, TPSHE, TP and STP Compilation
 
-The `TPSHE`, `TP` and `STP` are compiled by running the `build.sh` script, as explained at the beginning of this section. After running this script, executable files will be created in the `temporal-planning/bin` directory. In addition, that command also compiles a domain generator called `generator` for the Allen Algebra domain, which is stored in `temporal-planning/domains/AllenAlgebra/problems`.
+The `SEQ`, `TPSHE`, `TP` and `STP` planners are compiled by running the `build.sh` script, as explained at the beginning of this section. After running this script, executable files will be created in the `temporal-planning/bin` directory. In addition, that command also compiles a domain generator called `generator` for the Allen Algebra domain, which is stored in `temporal-planning/domains/AllenAlgebra/problems`.
 
 ### <a name="plan-validator-compilation"></a>Plan Validator (VAL)
 
@@ -58,6 +60,8 @@ The `VAL` tool by [[Howey, Long and Fox, 2004]](#ref-val) can be used to validat
 ## <a name="usage"></a>Usage
 
 ### <a name="automatic-usage"></a>Automatic Usage
+
+#### <a name="single-planner"></a>Running a Single Planner
 
 A Python script called `plan.py` inside the `bin` folder encapsulates all the required calls in order to get a plan given a planner (`TPSHE`, `TP` or `STP`) and a temporal planning problem. You can run it as follows:
 
@@ -68,6 +72,8 @@ plan.py [-h] [--generator GENERATOR] [--time TIME] [--memory MEMORY] [--iterated
 where:
 
 * `planner`: Name of the algorithm you want to use.
+
+    * If you want to use `SEQ`, you must write `seq`.
 
 	* If you want to use `TPSHE`, you must write `she`.
 
@@ -93,18 +99,55 @@ The temporal solutions obtained by Fast Downward will be written to files whose 
 
 Besides, in case a plan is produced, it will be validated using the `VAL` tool previously introduced. The output of the validator will be written to a file called `plan.validation`.
 
-#### Example 1
+##### Example 1
 
 ```
 cd temporal-planning
 python bin/plan.py she domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl --generator domains/AllenAlgebra/problems/generator
 ```
 
-#### Example 2
+##### Example 2
 
 ```
 cd temporal-planning
 python bin/plan.py tempo-2 domains/tempo-sat/Driverlog/domain/domain.pddl domains/tempo-sat/Driverlog/problems/p1.pddl
+```
+
+#### <a name="cp4tp"></a>Running a Portfolio (CP4TP)
+
+The planners can be run in a portfolio manner, from the most to less restricted (`SEQ`, `TPSHE`, `TP`, `STP`) using the following command:
+
+```
+plan_portfolio.py [-h] [--plan-file PLANFILE] [--time TIME] [--memory MEMORY] [--generator GENERATOR] [--no-iterated] [--validate] [--no-validate] [--use-full-time] domain problem
+```
+
+where:
+
+* `domain`: Path to the input domain.
+
+* `problem`: Path to the input problem.
+
+* `--plan-file`: Name of the output temporal plan.
+
+* `--time`: Maximum number of seconds available to find a solution. Default: 1800 seconds.
+
+* `--memory`: Maximum number of MiB that Fast Downward will use to find a solution. Default: 6000 MiB.
+
+* `--generator`: Path to the executable generator for transforming the input domain and problem. It is just needed for the Allen Algebra domain.
+
+* `--no-iterated`: Whether to stop after finding the first solution. It only works for sequential and `TPSHE` planners.
+
+* `--validate`, `--no-validate`: Whether to use `VAL` to validate or not the resulting plan.
+
+* `--use-full-time`: Whether each planner should use all the remaining time.
+
+* `-h`: Shows information about how to use the program.
+
+If you want to run the [`CP4TP`](#ref-cp4tp) planner, which was participated in the International Planning Competition (IPC) 2018, you just need to run the command above with the following arguments:
+
+```
+cd temporal-planning
+python bin/plan_portfolio.py --no-iterated --time 1680 --memory 6000 --use-full-time
 ```
 
 ### <a name="manual-usage"></a>Manual Usage
@@ -125,9 +168,9 @@ Assuming that we are in the folder `temporal-planning` (the root), an example wo
 ./domains/AllenAlgebra/problems/generator domains/AllenAlgebra/domain/domain.pddl domains/AllenAlgebra/problems/pfile10.pddl > tdom.pddl 2> tins.pddl
 ```
 
-#### <a name="use-tpshe"></a>Running TPSHE
+#### <a name="use-seq-tpshe"></a>Running SEQ and TPSHE
 
-To use `TPSHE`, you have to run the binary `compileSHE` placed in the `bin` folder. The command follows this structure:
+To use `SEQ` and `TPSHE`, you have to run the binaries `compileSequential` and `compileSHE` respectively. These are placed in the `bin` folder. The command follows this structure (analogous for the sequential planner):
 
 ```
 ./compileSHE <domain> <problem> > <output-domain> 2> <output-problem>
@@ -145,7 +188,7 @@ Once the domain and the problem have been converted, we can use Fast Downward us
 python fd_copy/fast-downward.py --build release64 --alias seq-sat-lama-2011 dom.pddl ins.pddl
 ```
 
-Since LAMA-2011 is used for `TPSHE`, a classical plan will be obtained instead of a temporal plan. The name of such plans begins with `sas_plan`. To convert a classical plan into a temporal plan, you can use the `planSchedule` tool of the `bin` folder as follows:
+Since LAMA-2011 is used for these planners, a classical plan will be obtained instead of a temporal plan. The name of such plans begins with `sas_plan`. To convert a classical plan into a temporal plan, you can use the `planSchedule` tool of the `bin` folder as follows:
 
 ```
 ./planSchedule <temporal-domain> <classical-domain> <temporal-problem> <classical-plan> > <temporal-plan>
@@ -177,7 +220,7 @@ Once the domain and the problem have been converted, we can use Fast Downward us
 python fd_copy/fast-downward.py --build release64 --alias tp-lama dom.pddl ins.pddl
 ```
 
-The output of Fast Downward will consist of temporal plans (the name of the files starts with `tmp_sas_plan.`) unlike with `TPSHE`.
+The output of Fast Downward will consist of temporal plans (the name of the files starts with `tmp_sas_plan.`) unlike with `SEQ` and `TPSHE`.
 
 ## <a name="credits"></a>Credits
 
@@ -191,5 +234,5 @@ The planner is a modified version of the [Fast Downward](http://www.fast-downwar
 
 * <a name="ref-val">Howey, R., Long, D., and Fox, M. (2004).</a> [_VAL: Automatic plan validation, continuous effects and mixed initiative planning using PDDL_](http://ieeexplore.ieee.org/document/1374201/). In Tools with Artificial Intelligence, 2004. ICTAI 2004. 16th IEEE International Conference on (pp. 294-301). IEEE.
 
-* <a name="ref-cp4tp">Furelos-Blanco, D. and Jonsson, A. (2018).</a> [_CP4TP: A Classical Planning for Temporal Planning Portfolio_](https://ipc2018-temporal.bitbucket.io/planner-abstracts/team1.pdf) ([code](https://bitbucket.org/ipc2018-temporal/team1/src/master/)). Temporal Track of the International Planning Competition (IPC) 2018.
+* <a name="ref-cp4tp">Furelos-Blanco, D. and Jonsson, A. (2018).</a> [_CP4TP: A Classical Planning for Temporal Planning Portfolio_](https://planning.wiki/_citedpapers/planners/cp4tp.pdf) ([code](https://bitbucket.org/ipc2018-temporal/team1/src/master/)). Temporal Track of the International Planning Competition (IPC) 2018.
 
