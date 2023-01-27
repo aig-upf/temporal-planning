@@ -181,10 +181,12 @@ int main( int argc, char *argv[] ) {
 					if ( !pre ) ( ( And * )doit->pre )->add( get( i )->pre_o->conds[k]->copy( *cd ) );
 				}
 				for ( unsigned k = 0; k < get( i )->pre_e->conds.size(); ++k ) {
-					Ground * h = ( Ground * )get( i )->pre_e->conds[k];
-					if ( !includes( 0, h, ( And * )get( i )->pre ) &&
+					Ground * h = dynamic_cast< Ground * >( get( i )->pre_e->conds[k] );
+					if ( h && !includes( 0, h, ( And * )get( i )->pre ) &&
 					     !includes( 0, h, ( And * )get( i )->eff ) )
 						cd->addPre( 0, name, h->name, h->params );
+					// if precon is not positive, just copy it
+					if ( !h ) ( ( And * )doit->pre )->add( get( i )->pre_e->conds[k]->copy( *cd ) );
 				}
 				cd->addPre( 0, name, stacks[*j] );
 
