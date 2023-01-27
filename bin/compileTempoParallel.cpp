@@ -157,7 +157,8 @@ int main( int argc, char *argv[] ) {
 
 		// concurrency checks
 		for ( unsigned j = 0; j < ( ( And * )get( i )->pre )->conds.size(); ++j ) {
-			Ground * pre = ( Ground * )( ( And * )get( i )->pre )->conds[j];
+			Ground * pre = dynamic_cast< Ground * >( ( ( And * )get( i )->pre )->conds[j] );
+			if ( !pre ) pre = ( ( Not * )( ( And * )get( i )->pre )->conds[j] )->cond;
 			if ( effs.find( d->preds.index( pre->name ) ) != effs.end() )
 				cd->addPre( 0, name, "LOCK-" + pre->name, pre->params );
 		}
@@ -178,7 +179,8 @@ int main( int argc, char *argv[] ) {
 
 		// concurrency updates
 		for ( unsigned j = 0; j < ( ( And * )get( i )->pre )->conds.size(); ++j ) {
-			Ground * pre = ( Ground * )( ( And * )get( i )->pre )->conds[j];
+			Ground * pre = dynamic_cast< Ground * >( ( ( And * )get( i )->pre )->conds[j] );
+			if ( !pre ) pre = ( ( Not * )( ( And * )get( i )->pre )->conds[j] )->cond;
 			if ( effs.find( d->preds.index( pre->name ) ) != effs.end() )
 				cd->addEff( 1, name, "PRE-" + pre->name, pre->params );
 		}
@@ -336,14 +338,20 @@ int main( int argc, char *argv[] ) {
 
 		// concurrency checks
 		for ( unsigned j = 0; j < get( i )->pre_e->conds.size(); ++j ) {
-			Ground * pre = ( Ground * )get( i )->pre_e->conds[j];
-			cd->addPre( 0, name, "LOCK-" + pre->name, pre->params );
+			Ground * pre = dynamic_cast< Ground * >( get( i )->pre_e->conds[j] );
+			if ( !pre ) pre = ( ( Not * )get( i )->pre_e->conds[j] )->cond;
+			if ( effs.find( d->preds.index( pre->name ) ) != effs.end() ) {
+				cd->addPre( 0, name, "LOCK-" + pre->name, pre->params );
+			}
 		}
+
 		for ( unsigned j = 0; j < get( i )->eff_e->conds.size(); ++j ) {
 			Ground * g = dynamic_cast< Ground * >( get( i )->eff_e->conds[j] );
 			if ( !g ) g = ( ( Not * )get( i )->eff_e->conds[j] )->cond;
-			cd->addPre( 0, name, "PRE-" + g->name, g->params );
-			cd->addPre( 0, name, "LOCK-" + g->name, g->params );
+			if ( effs.find( d->preds.index( g->name ) ) != effs.end() ) {
+				cd->addPre( 0, name, "PRE-" + g->name, g->params );
+				cd->addPre( 0, name, "LOCK-" + g->name, g->params );
+			}
 		}
 
 		// copy effects at end
@@ -354,8 +362,11 @@ int main( int argc, char *argv[] ) {
 
 		// add auxiliary fluents
 		for ( unsigned j = 0; j < get( i )->pre_e->conds.size(); ++j ) {
-			Ground * pre = ( Ground * )get( i )->pre_e->conds[j];
-			cd->addEff( 1, name, "PRE-" + pre->name, pre->params );
+			Ground * pre = dynamic_cast< Ground * >( get( i )->pre_e->conds[j] );
+			if ( !pre ) pre = ( ( Not * )get( i )->pre_e->conds[j] )->cond;
+			if ( effs.find( d->preds.index( pre->name ) ) != effs.end() ) {
+				cd->addEff( 1, name, "PRE-" + pre->name, pre->params );
+			}
 		}
 		for ( unsigned j = 0; j < get( i )->eff_e->conds.size(); ++j ) {
 			Ground * g = dynamic_cast< Ground * >( get( i )->eff_e->conds[j] );
